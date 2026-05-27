@@ -79,19 +79,17 @@ Creamos todas las tablas del proyecto — bloque de Gestión del Personal (depar
 
 [![CREATE TABLE departaments y empleats](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-006.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-006.png)
 
-[![CREATE TABLE grups_qualitat y usuaris_comunicacio](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-007.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-007.png)
-
 ### Inserción de datos de prueba
 
 Insertamos datos iniciales en todas las tablas: departamentos, empleados, grupos de calidad y usuarios de comunicación:
 
-[![INSERT datos de prueba](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-008.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-008.png)
+[![CREATE TABLE grups_qualitat y usuaris_comunicacio](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-007.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-007.png)
 
 ### Creación de roles
 
 Creamos cuatro roles (`admin`, `vendes`, `administracio`, `treballador`) con permisos diferenciados sobre las tablas de la base de datos:
 
-[![CREATE ROLE y GRANT privilegios](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-009.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-009.png)
+[![INSERT datos de prueba](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-008.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-008.png)
 
 ### Creación de triggers
 
@@ -99,23 +97,23 @@ Creamos cuatro roles (`admin`, `vendes`, `administracio`, `treballador`) con per
 
 **Trigger 2 — Quota de llamadas diarias (máx. 10):**
 
-[![Triggers de bloqueo y quota diaria](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-010.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-010.png)
+[![CREATE ROLE y GRANT privilegios](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-009.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-009.png)
 
 ### Evento de backup automático
 
 Activamos el planificador de eventos y creamos un evento diario que exporta las tablas principales a ficheros CSV y registra el resultado en `control_backups`:
 
-[![Evento ev_backup_diari](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-011.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-011.png)
+[![Triggers de bloqueo y quota diaria](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-010.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-010.png)
 
 ### Script de automatización de creación de usuarios
 
 Creamos el script `crear_usuari.sh` que solicita nombre, contraseña y rol, valida que el rol sea correcto, comprueba que el usuario no exista, lo crea en MariaDB y genera un fichero `.sql` con el registro:
 
-[![Script crear_usuari.sh en nano](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-012.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-012.png)
+[![Evento ev_backup_diari](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-011.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-011.png)
 
 Lo ejecutamos y mostramos la salida del SQL generado automáticamente:
 
-[![Ejecución script y SQL generado](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-013.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-013.png)
+[![Script crear_usuari.sh en nano](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-012.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-012.png)
 
 ## 3.4. Comprobaciones
 
@@ -123,21 +121,25 @@ Lo ejecutamos y mostramos la salida del SQL generado automáticamente:
 
 Verificamos que las 11 tablas se han creado correctamente:
 
-[![SHOW TABLES — 11 tablas](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-014.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-014.png)
+[![Ejecución script y SQL generado](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-013.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-013.png)
 
 ### Roles y usuarios
 
 Comprobamos los roles asignados y que la tabla `avisos` está vacía (aún sin eventos):
 
-[![roles_mapping y avisos vacío](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-015.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-015.png)
+[![SHOW TABLES — 11 tablas](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-014.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-014.png)
 
 ### Prueba del trigger de bloqueo
 
 Primero bloqueamos un usuario:
 
-[![UPDATE estado bloqueado](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-016.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-016.png)
+[![roles_mapping y avisos vacío](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-015.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-015.png)
 
 Ahora intentamos hacer una llamada con el usuario bloqueado — como se puede ver, da error:
+
+[![UPDATE estado bloqueado](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-016.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-016.png)
+
+
 
 [![INSERT trucada con usuario bloqueado — ERROR 45000](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-017.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-017.png)
 
@@ -157,13 +159,16 @@ Comprobamos que los roles se han creado correctamente y vemos cómo se ha creado
 
 [![roles_mapping con Steven creado](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-020.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-020.png)
 
+Aquí podemos ver todas las tablas creadas correctamente con los inserts iniciales:
+
 [![cat usuaris_creats.sql](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-021.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-021.png)
 
-Aquí podemos ver todas las tablas creadas correctamente con los inserts iniciales:
+### Automatización con Ansible
+
+Primeramente hemos instalado el servicio de ansible:
 
 [![SELECT * FROM empleats, departaments, trucades y videos_streaming](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-022.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-022.png)
 
-### Automatización con Ansible
 
 Automatizamos todo el despliegue con un playbook de Ansible que incluye instalación de MariaDB, configuración personalizada, arranque del servicio y creación del directorio de backups:
 
