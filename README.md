@@ -69,7 +69,7 @@ No todo tiene que estar en nuestra oficina. Vamos a ser prácticos y a repartir 
 
 <!-- ========================================== -->
 <!-- HUECO PARA INSERTAR LA IMAGEN DEL DISEÑO -->
-![Esquema del Diseño Inicial del CPD](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-002.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/modelo-final.jpg)
+![Esquema del Diseño Inicial del CPD](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/modelo-final.jpg)
 <!-- ========================================== -->
 
 *(Leyenda de los componentes del diseño que aparecen en la imagen adjunta)*
