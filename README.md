@@ -20,13 +20,32 @@ Eficiencia energética pasiva: Nosotros proyectamos el CPD en el núcleo geomét
 
 ## 4.1. Configuración Técnica
 
-* **SO:** Ubuntu Server 24.04
-* **Software Web:** Nginx
-* **Seguridad:** Implementación de acceso mediante usuarios guardados en server el LDP
+El primer paso es la creación de la máquina virtual que contendra la aplicación. En lugar de utilizar un servidor físico local, lo hemos hecho a traves de la nube mediante la plataforma Amazon Web Services (AWS). Esto nos garantiza que nuestro servidor esté operativo las 24 horas del día con una excelente estabilidad de red.
 
-Primero que todo creamos una máquina con los requisitos que queremos
+A nivel de especificaciones, seleccionamos una configuración estandarizada y eficiente para nuestro entorno:
+
+* **SO:** Ubuntu Server 24.04 LTS. Elegimos una versión LTS (Soporte Extendido) porque nos asegura actualizaciones de seguridad y estabilidad durante varios años, lo cual es vital en cualquier entorno.
+  
+* **Tipo de Instancia:** t2.micro. Esta configuración nos aporta 1 vCPU (procesador virtual) y 1 GiB de memoria RAM, recursos perfectamente optimizados y suficientes para ejecutar con ligereza nuestro servidor web.
+
+* **Nombre del Nodo:** Server-Web (SFTP), lo que nos permite identificarlo rápidamente dentro de nuestra red virtual de AWS.
 
 ![Página de AWS al crear la máquina virtual](images/image8.png)
+
+![Página de AWS al crear la máquina virtual](images/image13.png)
+
+Como se puede observar en la captura superior de la consola de AWS, el proceso de lanzamiento de la instancia requiere definir con precisión el hardware virtual. Al elegir Ubuntu Server como base, nos aseguramos de trabajar sobre un entorno Linux limpio, sin interfaz gráfica pesada, lo que permite aprovechar al máximo cada megabyte de la memoria RAM disponible para procesar las peticiones de los usuarios.
+
+## 4.2. Elección del Software Web
+
+Un cambio crítico que realizamos en la infraestructura durante el desarrollo del proyecto fue la elección del motor del servidor web. Aunque inicialmente se planificó utilizar Apache, finalmente decidimos instalar y configurar Nginx.
+
+Esta decisión se justifica por motivos puramente técnicos y de rendimiento:
+
+* **Consumo mínimo de memoria:** Apache consume mucha memoria RAM porque abre un proceso independiente por cada usuario que entra a la web. En una máquina con 1 GiB de RAM como la nuestra, esto podría saturar el sistema. Nginx, en cambio, utiliza un diseño avanzado basado en eventos que le permite atender a miles de usuarios simultáneamente usando poquísima memoria.
+
+* **Velocidad en consultas en segundo plano:** Como nuestra web utiliza funciones que consultan continuamente las tablas de llamadas y transmisiones en segundo plano, Nginx es capaz de enviar y recibir estos datos de una forma muchísimo más rápida y fluida, evitando que la página web se quede congelada.
+
 ![Página de AWS al crear la máquina virtual](images/image13.png)
 ![Página de AWS al crear la máquina virtual](images/image17.png)
 ![Página de AWS al crear la máquina virtual](images/image53.png)
