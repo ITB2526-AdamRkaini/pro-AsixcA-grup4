@@ -1,4 +1,15 @@
 # pro-AsixcA-grup4
+# Proyecto Transversal ASIXc1 — InnovateTech
+**Grupo:** pro-AsixcA-grupo4  
+**Miembros:** Erik Pandales, Steven Ramirez, Aleix Ramon, Adam Rkaini  
+**Curso:** 25/26 · Instituto Tecnológico de Barcelona
+
+## Índice
+- [Fase 1 — Arquitectura CPD](./fase1-cpd.md)
+- [Fase 2 — Servicios de Audio y Vídeo](./fase2-audio-video.md)
+- [Fase 3 — Base de Datos](./fase3-bbdd.md)
+- [Fase 4 — Servidor Web](./fase4-servidor-web.md)
+- [Fase 5 — Comprobación funcionamiento](./fase5-comprobaciones.md)
 
 BLOQUE 1: ARQUITECTURA DEL ESPACIO FÍSICO, DISEÑO ESTRUCTURAL Y SEGURIDAD
 
@@ -9,7 +20,6 @@ Aprovechando la disponibilidad de nuestro presupuesto sin restricciones y con el
 Con esta decisión arquitectónica responde a nuestra doble estrategia de mitigación de riesgos ambientales y optimización de recursos:
 Aislamiento frente a desastres naturales: Nosotros descartamos por completo los sótanos y las plantas bajas, eliminando de raíz la vulnerabilidad ante inundaciones provocadas por roturas en las redes generales de agua o por lluvias torrenciales que pongan en peligro la integridad del hardware. Asimismo, al evitar el ático o la última planta, nosotros esquivamos las filtraciones de agua por cubiertas y la radiación térmica solar directa.
 Eficiencia energética pasiva: Nosotros proyectamos el CPD en el núcleo geométrico de la planta, rodeado por zonas comunes de oficinas. Estas oficinas actúan como un colchón térmico natural que aísla los servidores de las fluctuaciones de temperatura del exterior del edificio. Al no sufrir el impacto directo del clima de la calle, hacemos que las necesidades de refrigeración disminuyan de manera drástica, reduciendo de forma directa la huella de carbono de nuestra empresa y logrando una infraestructura altamente sostenible.
-
 
 
 
