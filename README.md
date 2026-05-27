@@ -548,7 +548,7 @@ Por defecto, AWS aplica una política de seguridad estricta: todo lo que intente
 
 ![Página de AWS al crear la máquina virtual](images/image53.png)
 
-![Página de AWS al crear la máquina virtual](images/gurpo.png)
+![Página de AWS al crear la máquina virtual](images/grupo.png)
 
 * **Puerto TCP 22 (SSH):** Destinado a la administración remota, gestión del sistema operativo Ubuntu Server y tareas de despliegue por consola mediante terminal segura.
 
