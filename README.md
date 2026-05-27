@@ -46,20 +46,51 @@ Esta decisión se justifica por motivos puramente técnicos y de rendimiento:
 
 * **Velocidad en consultas en segundo plano:** Como nuestra web utiliza funciones que consultan continuamente las tablas de llamadas y transmisiones en segundo plano, Nginx es capaz de enviar y recibir estos datos de una forma muchísimo más rápida y fluida, evitando que la página web se quede congelada.
 
-![Página de AWS al crear la máquina virtual](images/image13.png)
+## 4.3. Mecanismos de Seguridad: Llaves SSH y Grupos de Seguridad
+
+Para garantizar que nuestro servidor no sea interceptado o controlado por terceros en el entorno digital de Amazon Web Services, la plataforma nos obliga a establecer dos barreras de protección obligatorias durante la creación de la instancia: el cifrado por par de llaves y el aislamiento  mediante un firewall lógico.
+
+### 4.3.1. Autenticación Criptográfica: El Par de Llaves (Key Pair)
+
+El uso de contraseñas tradicionales (como 1234 o admin) está completamente descartado porque son vulnerables a ataques de fuerza bruta. En su lugar, implementamos un sistema de Cifrado  mediante la generación de un par de llaves criptográficas (un archivo con extensión .pem).
+
+Este mecanismo funciona  como un candado y su llave:
+
+* **La Llave Pública:** Se queda guardada dentro del propio servidor en la nube. Actúa como el candado.
+
+* **La Llave Privada:** Es el archivo  que nos descargamos a nuestra computadora física. Actúa como la llave para abrir el candado
+
 ![Página de AWS al crear la máquina virtual](images/image17.png)
+
+### 4.3.2. Aislamiento de Red: El Grupo de Seguridad (Security Group)
+
+Mientras que el par de llaves controla quién puede entrar al servidor, el Grupo de Seguridad controla qué tipo de tráfico tiene permitido viajar por la red hacia nuestra máquina. El Grupo de Seguridad es como un firewall virtual
+
+Por defecto, AWS aplica una política de seguridad estricta: todo lo que intente entrar desde el exterior está prohibido. Para que nuestra aplicación web y nuestros servicios de transmisión puedan funcionar, tuvimos que definir "reglas de entrada" específicas.
+
+
 ![Página de AWS al crear la máquina virtual](images/image53.png)
-![Página de AWS al crear la máquina virtual](images/image31.png)
-![Página de AWS al crear la máquina virtual](images/image40.png)
-![Página de AWS al crear la máquina virtual](images/image33.png)
 ![Página de AWS al crear la máquina virtual](images/image47.png)
 
-IP Elastica
+## 4.5. Configuración de una IP Elástica (Elastic IP)
+
+Tras haber configurado los puertos de entrada de nuestra máquina virtual, el último paso indispensable en la configuración de la infraestructura  fue estabilizar una IP estatica. Por defecto, las instancias de Amazon EC2 reciben una dirección IP pública dinámica. Esto significa que si el servidor se reinicia por mantenimiento o actualizaciones, la IP cambia automáticamente, lo que rompería de inmediato los enlaces del proyecto y las conexiones de los usuarios.
+
+Para evitar este problema y asegurar que nuestro Server-Web mantenga siempre la misma IP, procedimos a reservar y asociar una IP Elástica. Una IP Elástica es una dirección IP pública estática.
+
+A continucaion explicaremos como lo hemos configurado:
+
+Primero seleccionamos Elastic IP's en ajustes de Network ans Security 
 
 ![Página de AWS al crear la máquina virtual](images/image48.png)
-![Página de AWS al crear la máquina virtual](images/image9.png)
+
+Creamos la IP Elástica dandole al boton naranja 
 ![Página de AWS al crear la máquina virtual](images/image43.png)
 ![Página de AWS al crear la máquina virtual](images/image7.png)
+
+Ahora desde la seccion de "Instancias" seleccionamos nuestra maquina y le daremos a seleccionar la IP Elástica que hemos creado
+
+![Página de AWS al crear la máquina virtual](images/image9.png)
 ![Página de AWS al crear la máquina virtual](images/image21.png)
 ![Página de AWS al crear la máquina virtual](images/image16.png)
 
