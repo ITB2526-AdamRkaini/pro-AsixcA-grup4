@@ -24,6 +24,214 @@ Eficiencia energética pasiva: Nosotros proyectamos el CPD en el núcleo geomét
 
 
 
+# FASE 3. CREACIÓN DE LA BASE DE DATOS
+
+## 3.1. Preparación del entorno
+
+El primer paso fue verificar la conectividad de la máquina y preparar el usuario de administración.
+
+[![Preparación entorno](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-000.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-000.png)
+
+Creamos el usuario de administración `adminitb`, le damos permisos `sudo` y creamos la carpeta SSH para el nuevo usuario, copiando las claves autorizadas y ajustando permisos:
+
+```bash
+sudo adduser adminitb --disabled-password --gecos ""
+sudo usermod -aG sudo adminitb
+sudo mkdir -p /home/adminitb/.ssh
+sudo cp ~/.ssh/authorized_keys /home/adminitb/.ssh/
+sudo chown -R adminitb:adminitb /home/adminitb/.ssh
+sudo chmod 700 /home/adminitb/.ssh
+sudo chmod 600 /home/adminitb/.ssh/authorized_keys
+sudo apt update && sudo apt upgrade -y
+```
+
+## 3.2. Instalación MariaDB
+
+Instalamos MariaDB y verificamos que el servicio arranca correctamente:
+
+[![Estado servicio MariaDB](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-001.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-001.png)
+
+La versión instalada es **MariaDB 11.8.6**. A continuación creamos también el usuario de administración y la carpeta SSH.
+
+[![Creación usuario adminitb](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-002.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-002.png)
+
+### Securización de MariaDB
+
+Como `mysql_secure_installation` no funcionaba, lo hicimos manualmente entrando directamente como root. Pusimos contraseña a root, eliminamos usuarios anónimos, bloqueamos el acceso remoto de root, borramos la BD de test y recargamos privilegios.
+
+[![Securización manual MariaDB](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-003.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-003.png)
+
+## 3.3. Creación de la base de datos
+
+### Creación de la BD
+
+Creamos la base de datos del proyecto con charset `utf8mb4` y verificamos que se ha creado:
+
+[![CREATE DATABASE y SHOW DATABASES](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-004.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-004.png)
+
+Entramos a la base de datos:
+
+[![USE innovatetech_db](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-005.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-005.png)
+
+### Creación de tablas
+
+Creamos todas las tablas del proyecto — bloque de Gestión del Personal (departaments, empleats) y bloque de Sistema de Comunicación (grups_qualitat, usuaris_comunicacio):
+
+[![CREATE TABLE departaments y empleats](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-006.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-006.png)
+
+[![CREATE TABLE grups_qualitat y usuaris_comunicacio](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-007.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-007.png)
+
+### Inserción de datos de prueba
+
+Insertamos datos iniciales en todas las tablas: departamentos, empleados, grupos de calidad y usuarios de comunicación:
+
+[![INSERT datos de prueba](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-008.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-008.png)
+
+### Creación de roles
+
+Creamos cuatro roles (`admin`, `vendes`, `administracio`, `treballador`) con permisos diferenciados sobre las tablas de la base de datos:
+
+[![CREATE ROLE y GRANT privilegios](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-009.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-009.png)
+
+### Creación de triggers
+
+**Trigger 1 — Bloqueo de usuario:** impide hacer llamadas si el originador o el destinatario están bloqueados, y registra el intento en la tabla `avisos`.
+
+**Trigger 2 — Quota de llamadas diarias (máx. 10):**
+
+[![Triggers de bloqueo y quota diaria](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-010.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-010.png)
+
+### Evento de backup automático
+
+Activamos el planificador de eventos y creamos un evento diario que exporta las tablas principales a ficheros CSV y registra el resultado en `control_backups`:
+
+[![Evento ev_backup_diari](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-011.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-011.png)
+
+### Script de automatización de creación de usuarios
+
+Creamos el script `crear_usuari.sh` que solicita nombre, contraseña y rol, valida que el rol sea correcto, comprueba que el usuario no exista, lo crea en MariaDB y genera un fichero `.sql` con el registro:
+
+[![Script crear_usuari.sh en nano](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-012.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-012.png)
+
+Lo ejecutamos y mostramos la salida del SQL generado automáticamente:
+
+[![Ejecución script y SQL generado](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-013.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-013.png)
+
+## 3.4. Comprobaciones
+
+### Tablas creadas
+
+Verificamos que las 11 tablas se han creado correctamente:
+
+[![SHOW TABLES — 11 tablas](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-014.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-014.png)
+
+### Roles y usuarios
+
+Comprobamos los roles asignados y que la tabla `avisos` está vacía (aún sin eventos):
+
+[![roles_mapping y avisos vacío](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-015.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-015.png)
+
+### Prueba del trigger de bloqueo
+
+Primero bloqueamos un usuario:
+
+[![UPDATE estado bloqueado](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-016.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-016.png)
+
+Ahora intentamos hacer una llamada con el usuario bloqueado — como se puede ver, da error:
+
+[![INSERT trucada con usuario bloqueado — ERROR 45000](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-017.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-017.png)
+
+Comprobamos las llamadas que tiene el usuario 2 hoy:
+
+[![SELECT COUNT trucadas usuario 2](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-018.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-018.png)
+
+### Trigger de auditoría
+
+Modificamos la tabla `empleats` y comprobamos que se ha registrado en `avisos`:
+
+[![UPDATE empleats y SELECT avisos con registro de auditoría](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-019.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-019.png)
+
+### Verificación de roles y datos de tablas
+
+Comprobamos que los roles se han creado correctamente y vemos cómo se ha creado el usuario después de ejecutar `./crear_usuari.sh`:
+
+[![roles_mapping con Steven creado](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-020.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-020.png)
+
+[![cat usuaris_creats.sql](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-021.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-021.png)
+
+Aquí podemos ver todas las tablas creadas correctamente con los inserts iniciales:
+
+[![SELECT * FROM empleats, departaments, trucades y videos_streaming](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-022.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-022.png)
+
+### Automatización con Ansible
+
+Automatizamos todo el despliegue con un playbook de Ansible que incluye instalación de MariaDB, configuración personalizada, arranque del servicio y creación del directorio de backups:
+
+[![Playbook Ansible en nano](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-023.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-023.png)
+
+El playbook se ejecutó correctamente sin errores:
+
+[![Ejecución ansible-playbook — PLAY RECAP OK](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-024.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-024.png)
+
+### Usuario webappuser y reglas de firewall
+
+Algo que no habíamos tenido en cuenta antes fue crear el usuario `webappuser`, específico para el servidor web. Le damos permisos completos sobre la base de datos desde su IP:
+
+[![CREATE USER webappuser y GRANT](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-025.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-025.png)
+
+Añadimos la regla UFW que permite el puerto 3306 únicamente desde el servidor web:
+
+[![UFW status verbose — puerto 3306 restringido](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-026.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-026.png)
+
+## 3.5. Diagrama E/R
+
+[![Diagrama E/R innovatetech_db](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-029.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-029.png)
+
+## 3.6. Modelo Relacional
+
+```
+departaments (codi_dept PK, nom, telefon)
+
+empleats (dni PK, nom, cognoms, adreca, telefon,
+          codi_dept FK→departaments.codi_dept)
+
+grups_qualitat (id_grup PK, nom_grup, qualitat,
+                max_resolucio, max_bitrate_kbps)
+
+usuaris_comunicacio (id_usuari PK, nom_complet, email,
+                     extensio, estat, tipus, rol,
+                     id_grup FK→grups_qualitat.id_grup,
+                     data_bloqueig, bloqueig_temporal, data_fi_bloqueig)
+
+trucades (id_trucada PK,
+          id_originador FK→usuaris_comunicacio.id_usuari,
+          id_destinatari FK→usuaris_comunicacio.id_usuari,
+          data_inici, data_fi, durada_minuts,
+          qualitat_usada, enllac_videotrucada)
+
+valoracions_trucades (id_valoracio PK,
+                      id_trucada FK→trucades.id_trucada,
+                      puntuacio, comentari, data_valoracio)
+
+videos_streaming (id_video PK, titol, descripcio,
+                  categoria, durada_segons, data_publicacio,
+                  enllac_streaming, paraules_clau)
+
+mesures_amplada_banda (id_mesura PK, data_hora,
+                       equip_mesurat,
+                       id_operari FK→usuaris_comunicacio.id_usuari,
+                       velocitat_baixada_mbps, velocitat_pujada_mbps,
+                       latencia_ms, resultat, notes)
+
+avisos (id_avis PK, usuari_bd, taula_afectada,
+        operacio, data_hora, descripcio)
+
+control_backups (id_backup PK, data_hora,
+                 taules_incloses, resultat, notes)
+
+configuracio_servidor (id_config PK, parametre, valor,
+                       protocol, port, descripcio)
+```
 
 
 # FASE 4. SERVER WEB
