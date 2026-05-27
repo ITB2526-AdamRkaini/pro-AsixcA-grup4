@@ -11,18 +11,79 @@
 - [Fase 4 — Servidor Web](./fase4-servidor-web.md)
 - [Fase 5 — Comprobación funcionamiento](./fase5-comprobaciones.md)
 
-BLOQUE 1: ARQUITECTURA DEL ESPACIO FÍSICO, DISEÑO ESTRUCTURAL Y SEGURIDAD
+# FASE 1: ARQUITECTURA DEL ESPACIO FÍSICO, DISEÑO ESTRUCTURAL Y SEGURIDAD
 
-1.1.Nuestra Ubicación Estratégica de la Sala e Integración Sostenible
+**Objetivo:** Modernizar nuestra infraestructura informática para que sea rápida, segura, consuma poca energía y no nos cueste una fortuna.
 
-Nuestro diseño del Centro de Procesamiento de Datos (CPD) para Innovate Tech parte de la premisa de que la seguridad física del mundo real es la base indispensable para la estabilidad del entorno digital. 
-Aprovechando la disponibilidad de nuestro presupuesto sin restricciones y con el objetivo de alcanzar la máxima eficiencia ecológica, determinamos la implantación de la sala en la planta intermedia del edificio corporativo.
-Con esta decisión arquitectónica responde a nuestra doble estrategia de mitigación de riesgos ambientales y optimización de recursos:
-Aislamiento frente a desastres naturales: Nosotros descartamos por completo los sótanos y las plantas bajas, eliminando de raíz la vulnerabilidad ante inundaciones provocadas por roturas en las redes generales de agua o por lluvias torrenciales que pongan en peligro la integridad del hardware. Asimismo, al evitar el ático o la última planta, nosotros esquivamos las filtraciones de agua por cubiertas y la radiación térmica solar directa.
-Eficiencia energética pasiva: Nosotros proyectamos el CPD en el núcleo geométrico de la planta, rodeado por zonas comunes de oficinas. Estas oficinas actúan como un colchón térmico natural que aísla los servidores de las fluctuaciones de temperatura del exterior del edificio. Al no sufrir el impacto directo del clima de la calle, hacemos que las necesidades de refrigeración disminuyan de manera drástica, reduciendo de forma directa la huella de carbono de nuestra empresa y logrando una infraestructura altamente sostenible.
+A continuación, explicamos de forma sencilla cómo vamos a montar nuestro nuevo Centro de Datos y la nube.
+
+## 1.1. Organización Física de la Sala
+
+### 1.1.1. Los Armarios (Racks)
+Vamos a arrancar con dos armarios grandes estándar. Para tenerlo todo ordenado, los vamos a dividir así:
+* **Armario 1 (Comunicaciones):** Aquí pondremos todo lo que conecta a la empresa con el mundo (routers, los sistemas de seguridad y los cables de red).
+* **Armario 2 (Cerebro y Memoria):** Aquí irán los servidores (donde se procesa la información) y los discos duros gigantes donde guardaremos los datos.
+
+### 1.1.2. Nuestra Estructura: Suelo Técnico y Techo Técnico
+Para que la sala no sea un caos de cables y sea fácil hacer reparaciones, vamos a separar las cosas por "carreteras" distintas:
+* **Por debajo (Suelo técnico elevado):** Solo van a pasar los cables de la luz eléctrica y, lo más importante, el aire frío para refrescar los equipos.
+* **Por arriba (Techo técnico):** Colgaremos unas bandejas del techo por donde irán todos los cables de datos (los de internet y fibra). Así, si un técnico necesita cambiar un cable de red, lo tiene a mano arriba y no se mezcla con la electricidad (lo que además evita interferencias).
+
+## 1.2. Ubicación y Parámetros Atmosféricos
+
+### 1.2.1. El Local ideal
+Hemos elegido una habitación en una planta intermedia del edificio que no tiene ventanas. ¿Por qué?
+Porque si nos ponemos en la planta baja nos podemos inundar, y en el tejado podemos tener goteras. Al no tener ventanas, nadie de fuera puede ver qué hay dentro, es más seguro y, sobre todo, no nos entra el calor del sol, lo que nos ahorra muchísimo dinero en aire acondicionado.
+
+### 1.2.2. Parámetros Atmosféricos y Climatización
+Los servidores son como estufas, así que el clima de la sala es vital para que no se rompan:
+* **Temperatura (Pasillos fríos y calientes):** Vamos a hacer que el aire frío salga por el suelo justo delante de los equipos. Los equipos lo "respiran", se enfrían, y sueltan el aire caliente por la parte de atrás, que sube al techo y se extrae. Así no se mezcla el aire frío con el caliente y enfriamos la sala gastando mucha menos luz.
+* **Humedad controlada (45%-55%):** Esto es súper importante. Si el aire de la sala es muy seco, se genera electricidad estática y un chispazo puede freír un servidor. Si es muy húmedo, se crea agua (condensación) y los equipos se oxidan o hacen cortocircuito. Mantendremos la humedad siempre a la mitad exacta.
+* **Calidad del aire:** Usaremos filtros antipolvo potentes para que no entre suciedad que pueda atascar los ventiladores de los servidores.
+
+## 1.3. Los Equipos Informáticos (Hardware)
+* **Servidores "Virtuales":** En lugar de comprar 20 ordenadores normales para 20 tareas distintas, vamos a comprar unos pocos servidores súper potentes. Usando un programa especial, vamos a dividirlos internamente para que cada uno funcione como si fueran muchos ordenadores pequeños. Ahorramos mucho espacio físico, dinero y electricidad.
+* **Cables cortos y rápidos:** Para no tener cables kilométricos cruzando la sala, pondremos el enchufe principal de la red en la parte de arriba de cada armario. Usaremos cables de cobre modernos (muy rápidos y baratos) para distancias cortas, y cables de fibra óptica para conectar los armarios entre sí a la velocidad de la luz.
+
+## 1.4. Electricidad y Baterías de Respaldo
+Queremos que el sistema nunca se apague por sorpresa, así que todo va por duplicado:
+* **Doble enchufe:** Cada máquina importante tendrá dos cables de corriente conectados a fuentes eléctricas distintas (Línea A y Línea B). Si falla un lado, el otro sigue funcionando.
+* **Baterías de emergencia (SAIs):** Tendremos unas baterías gigantes que nos darán entre 15 y 20 minutos de vida si hay un apagón general. Este tiempo es perfecto: nos da margen suficiente para que arranque nuestro generador de gasolina o, en el peor de los casos, para que los servidores se apaguen solitos con cuidado, sin que perdamos ningún archivo.
+
+## 1.5. Seguridad: Nadie entra sin permiso
+* **Seguridad Física:** A la sala de servidores solo entrará la gente autorizada. Hará falta usar una tarjeta de empleado y además teclear un PIN. Pondremos cámaras de seguridad en los pasillos, pero apuntando de forma que no puedan grabar qué estamos haciendo en las pantallas. Si hay un fuego, tenemos un gas especial que apaga las llamas de golpe pero que no deja manchas ni estropea los ordenadores (no podemos usar agua, obviamente).
+* **Seguridad Digital:** Instalaremos un "portero de discoteca" virtual (Firewall) muy estricto para frenar ataques de internet. Dividiremos la red en compartimentos para que, si un virus entra por un ordenador de un usuario, no pueda saltar a los servidores. Además, guardaremos todos los datos valiosos por duplicado y haremos copias de seguridad usando la regla del 3-2-1 (tres copias, en dos formatos distintos, y una fuera de la oficina).
+
+## 1.6. Cuidando a nuestro equipo - Riesgos Laborales
+Queremos que quien trabaje en la sala esté a salvo y cómodo:
+* Pondremos un suelo especial que evita calambres o descargas eléctricas.
+* Como los servidores pesan muchísimo, compraremos unas pequeñas grúas elevadoras para meterlos en los armarios sin que nadie se destroce la espalda.
+* En esa sala hay un zumbido constante por los ventiladores que, a la larga, daña los oídos. Para solucionarlo, forraremos las paredes con paneles que absorben el ruido y será obligatorio entrar con cascos de protección auditiva.
+
+## 1.7. Trabajando con Internet - Nuestra Nube en Amazon
+No todo tiene que estar en nuestra oficina. Vamos a ser prácticos y a repartir el trabajo entre nuestra sala y los servidores de Amazon (AWS):
+* **Lo público fuera, lo privado en casa:** La web de la empresa y todo lo que tiene que estar expuesto a internet lo alojaremos en Amazon. Así, si recibimos muchas visitas o un ataque cibernético fuerte, los servidores gigantes de Amazon lo soportarán. Sin embargo, nuestros secretos, contraseñas y datos privados de clientes se quedan en nuestro cuarto de servidores.
+* **Gestión segura y a distancia:** Para manejar los equipos que tenemos en Amazon, lo haremos de forma automática con pequeños programas (Ansible). Para conectarnos a ellos, no usaremos contraseñas normales que nos puedan robar, sino que entraremos por una única "puerta" súper vigilada (Bastion Host) usando llaves digitales (ficheros secretos) que solo tenemos nosotros.
+
+## 1.8. Diseño inicial de nuestro CPD
+
+<!-- ========================================== -->
+<!-- HUECO PARA INSERTAR LA IMAGEN DEL DISEÑO -->
+![Esquema del Diseño Inicial del CPD](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-002.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/modelo-final.jpg)
+<!-- ========================================== -->
+
+*(Leyenda de los componentes del diseño que aparecen en la imagen adjunta)*
+* **Estructura del edificio:** Techo real, falso techo, suelo técnico elevado, baldosas perforadas y suelo real (forjado).
+* **Climatización:** Zona de extracción de aire caliente, pasillo caliente, pasillo frío, impulsión de aire frío.
+* **Cableado:** Bandeja de cableado de datos por el techo (Fibra y cobre CAT 6a), conductos eléctricos y PDU inteligentes por el suelo (Línea A y B).
+* **Seguridad y Extinción:** Acceso doble factor (Card + PIN), gas Novec 1230.
+* **Riesgos Laborales:** Avisos de ruido alto (uso de protección auditiva), suelo antiestático y mecanismo Server Lifter.
+* **Rack 1 (Telecomunicaciones):** Routers, Switches, Firewalls, Switches ToR, cableado Cat 6a UTP.
+* **Rack 2 (Servidores y Almacenamiento):** Clúster de virtualización denso, SAN/NAS arrays.
 
 
-
+# FASE 2. IMPLANTACIÓN DE LOS SERVICIOS DE AUDIO-VÍDEO Y VIDEOCONFERENCIA
+Añadir código aquí
 
 # FASE 3. CREACIÓN DE LA BASE DE DATOS
 
