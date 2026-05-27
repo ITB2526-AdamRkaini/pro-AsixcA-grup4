@@ -182,7 +182,7 @@ Activamos el firewall
 
 A partir de este momento, cualquier intento de conexión hacia un puerto que no hayamos autorizado explícitamente será descartado en el mismo instante en que toque la interfaz de red del Server-Web.
 
-## Implementación del Servicio de Transferencia de Ficheros (SFTP)
+## 4.7. Implementación del Servicio de Transferencia de Ficheros (SFTP)
 
 Para cubrir el requerimiento de transferencia segura de archivos, hemos configurado un servicio SFTP con aislamiento (Chroot). Este diseño garantiza que los usuarios puedan subir y descargar archivos sin que tengan privilegios para navegar por las carpetas del sistema.
 Editamos el archivo de configuración de SSH ya añadimos esta línea:
@@ -192,7 +192,7 @@ Editamos el archivo de configuración de SSH ya añadimos esta línea:
 
 Hemos usado ChrootDirectory para crear una 'cárcel' lógica. Esto permite que cualquier persona  gestione archivos en el servidor con la total seguridad de que su acceso está limitado únicamente a los directorios autorizados, protegiendo la integridad del sistema operativo central.
 
-## Instalación del servidor web
+## 4.8. Instalación del servidor web
 
 Hemos optado por Nginx debido a su arquitectura basada en eventos, la cual gestiona las peticiones de forma más eficiente que los servidores web tradicionales. Esto nos permite garantizar una alta disponibilidad.
 
@@ -230,7 +230,7 @@ Verfificacion:
 ![Página de AWS al crear la máquina virtual](images/image20.png)
 
 
-## Conexión con la Base de Datos
+## 4.9. Conexión con la Base de Datos
 Instalamos el cliente mariadb para que nos podamos conectar
 
 ![Página de AWS al crear la máquina virtual](images/image45.png)
@@ -248,7 +248,7 @@ Una vegada comprovat que podem accedir a la Base de Dades creem un arxiu dins de
 ![Página de AWS al crear la máquina virtual](images/image46.png)
 
 
-## 4.6. Página Web
+## 4.10. Página Web
 Usaremos php ya que HTML es estático, el servidor web se limita a transmitir el archivo tal cual está almacenado en el disco duro hacia el navegador del cliente, el cual realiza el trabajo.
 
 Como ahora vamos a usar formato php, tenemos que instalar los paquetes necesarios para que pueda trabajar sin problemas ya que si no los instalamos es como que el servidor no puede leer o traducir esos datos.
@@ -264,12 +264,12 @@ IMPORTANTE QUE PONGAMOS LA VERSIÓN QUE ESTAMOS USANDO
 ![Página de AWS al crear la máquina virtual](images/image44.png)
 
 
-## Archivos Creados
+## 4.11. Archivos Creados
 Para la  web, se ha desplegado un árbol de archivos donde cada componente cumple una función específica dentro de la aplicación:
 
 ![Página de AWS al crear la máquina virtual](images/image11.png)
 
-### config.php (Configuración): 
+* **config.php (Configuración):** 
 Este archivo es fundamental porque aquí es donde se configura la conexión a la base de datos. Guarda los datos clave como la dirección IP del servidor (54.205.31.97), el usuario, la contraseña y el nombre de la base de datos.
 
 ![Página de AWS al crear la máquina virtual](images/image39.png)
