@@ -83,7 +83,191 @@ No todo tiene que estar en nuestra oficina. Vamos a ser prácticos y a repartir 
 
 
 # FASE 2. IMPLANTACIÓN DE LOS SERVICIOS DE AUDIO-VÍDEO Y VIDEOCONFERENCIA
-Añadir código aquí
+## 2.5. Server-Videoconferencias
+ 
+Creación de usuario de administración:
+ 
+![Creación de usuario de administración](images.Adam/image43.png)
+ 
+ip a de la máquina:
+ 
+![ip a de la máquina](images.Adam/image24.png)
+ 
+Generación clave SSH:
+ 
+![Generación clave SSH](images.Adam/image37.png)
+ 
+Cambiamos el hostname de la máquina de videoconferencia.
+ 
+![Cambio de hostname](images.Adam/image20.png)
+ 
+Descargamos la firma de Jitsi para verificar que vamos a descargar el auténtico y no uno falso o un virus.
+ 
+![Descarga firma Jitsi](images.Adam/image42.png)
+ 
+Añadimos el repositorio de descarga de la página web de Jitsi.
+ 
+![Repositorio Jitsi](images.Adam/image1.png)
+ 
+Actualizamos los repositorios una última vez e instalamos ya el jitsi-meet:
+ 
+![sudo apt update](images.Adam/image35.png)
+ 
+![sudo apt install jitsi-meet](images.Adam/image41.png)
+ 
+Ponemos la IP pública de la máquina como el dominio para más tarde usarla y poder acceder a la página mediante la IP.
+ 
+![Configuración dominio Jitsi](images.Adam/image22.png)
+ 
+Generamos un certificado nuevo.
+ 
+![Generación certificado](images.Adam/image19.png)
+ 
+Añadimos este bloque de configuración en el archivo localizado en `/etc/jitsi/videobridge/jvb.conf` con la IP pública y privada de la máquina AWS:
+ 
+![Configuración jvb.conf](images.Adam/image6.png)
+ 
+Reiniciamos el servicio para aplicar bien los cambios:
+ 
+![Reinicio de servicios](images.Adam/image10.png)
+ 
+Buscamos la web por la IP pública de la máquina:
+ 
+![Acceso web Jitsi](images.Adam/image31.png)
+ 
+Saldrá una pantalla roja. **Esto es correcto y esperado**, ya que configuramos un certificado *autofirmado*. Hacemos clic en "Configuración avanzada" y luego en "Acceder a... (no seguro)").
+ 
+Iniciamos la conferencia correctamente; cualquiera puede acceder poniendo la IP en el buscador:
+ 
+![Videoconferencia funcionando](images.Adam/image28.png)
+ 
+---
+ 
+## 2.6. Server-logs-Adam
+ 
+Creación de usuario de administración:
+ 
+![Creación de usuario de administración](images.Adam/image9.png)
+ 
+![Creación de usuario de administración](images.Adam/image29.png)
+ 
+Generación clave SSH:
+ 
+![Generación clave SSH](images.Adam/image26.png)
+ 
+Cambiamos el hostname de la máquina:
+ 
+![Cambio de hostname](images.Adam/image44.png)
+ 
+Buscamos las líneas siguientes y las descomentamos en el archivo `/etc/rsyslog.conf`:
+ 
+![Descomentamos líneas en rsyslog.conf](images.Adam/image25.png)
+ 
+Además, al final del archivo añadimos estas tres líneas que nos permitirán organizar mejor los logs:
+ 
+![Líneas añadidas al final de rsyslog.conf](images.Adam/image23.png)
+ 
+Reiniciamos los servicios para aplicar bien los cambios:
+ 
+![Reinicio de rsyslog](images.Adam/image15.png)
+ 
+Comprobamos que el servidor está escuchando ya a internet:
+ 
+![Comprobación de puertos](images.Adam/image46.png)
+ 
+Añadimos líneas específicas con las IPs de las máquinas del grupo en la sección de Security Group de la máquina de logs para limitar el acceso a otras máquinas.
+ 
+![Security Group](images.Adam/image14.png)
+ 
+Además, añadimos estas dos líneas con las IPs en el documento `/etc/rsyslog.conf`:
+ 
+![AllowedSender en rsyslog.conf](images.Adam/image2.png)
+ 
+En los equipos de los integrantes del equipo de los que vayamos a recibir logs vamos al archivo de configuración `/etc/rsyslog.conf` y al final añadimos la configuración correspondiente.
+ 
+Hacemos un restart del servicio para aplicar cambios:
+ 
+![Restart rsyslog](images.Adam/image12.png)
+ 
+Comprobamos con la prueba desde el equipo de un integrante con el comando `logger -t PROYECTO "Hola Adam, esto es un log de prueba de Eric"`:
+ 
+![Prueba de log remoto](images.Adam/image4.png)
+ 
+### Montar servicio web de logs para ver gráficamente
+ 
+![Instalación dependencias Grafana](images.Adam/image36.png)
+ 
+![Añadir repositorio Grafana](images.Adam/image40.png)
+ 
+Instalamos el Grafana:
+ 
+![Instalación Grafana](images.Adam/image13.png)
+ 
+Activamos los servicios:
+ 
+![Activación servicios Grafana](images.Adam/image38.png)
+ 
+Instalamos Loki y Promtail de los repositorios de GitHub:
+ 
+![Descarga Loki](images.Adam/image3.png)
+ 
+![Descarga Promtail](images.Adam/image34.png)
+ 
+![Instalación Loki y Promtail](images.Adam/image11.png)
+ 
+![Instalación Loki y Promtail](images.Adam/image8.png)
+ 
+Configuramos el archivo `/etc/promtail/config.yml` y añadimos este bloque:
+ 
+![Configuración promtail config.yml](images.Adam/image30.png)
+ 
+Arrancamos los dos servicios:
+ 
+![Arranque Loki y Promtail](images.Adam/image7.png)
+ 
+Entramos a la web:
+ 
+![Login Grafana](images.Adam/image5.png)
+ 
+Nos solicita cambiar la contraseña después del primer inicio de sesión; la cambiamos por "pirineus".
+ 
+En el apartado Connections del menú izquierdo, añadimos exactamente `http://localhost:3100` en el campo Connection URL y guardamos los cambios.
+ 
+![Conexión Loki en Grafana](images.Adam/image21.png)
+ 
+![Data source conectado correctamente](images.Adam/image39.png)
+ 
+Vamos a Explore, seleccionamos Loki y en el apartado Code escribimos exactamente la línea `{job="rsyslog-remote"}` y le damos al botón azul de Run query. Ahora podemos ver los logs en tiempo real y los hechos anteriormente.
+ 
+![Logs en tiempo real en Grafana](images.Adam/image16.png)
+ 
+---
+ 
+### ANSIBLE
+ 
+Actualización de los repositorios:
+ 
+![Actualización repositorios](images.Adam/image32.png)
+ 
+Instalación de Ansible:
+ 
+![Instalación Ansible](images.Adam/image33.png)
+ 
+Configuración del playbook:
+ 
+![Configuración del playbook](images.Adam/image17.png)
+ 
+Ejecución del playbook exitosa:
+ 
+![Ejecución del playbook](images.Adam/image18.png)
+ 
+Comprobación de que funciona correctamente:
+ 
+![Comprobación Grafana](images.Adam/image45.png)
+ 
+Creación de dashboard personalizado:
+ 
+![Dashboard personalizado](images.Adam/image27.png)
 
 # FASE 3. CREACIÓN DE LA BASE DE DATOS
 
