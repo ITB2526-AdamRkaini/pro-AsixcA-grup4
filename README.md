@@ -36,6 +36,8 @@ A nivel de especificaciones, seleccionamos una configuración estandarizada y ef
 
 Como se puede observar en la captura superior de la consola de AWS, el proceso de lanzamiento de la instancia requiere definir con precisión el hardware virtual. Al elegir Ubuntu Server como base, nos aseguramos de trabajar sobre un entorno Linux limpio, sin interfaz gráfica pesada, lo que permite aprovechar al máximo cada megabyte de la memoria RAM disponible para procesar las peticiones de los usuarios.
 
+
+
 ## 4.2. Elección del Software Web
 
 Un cambio crítico que realizamos en la infraestructura durante el desarrollo del proyecto fue la elección del motor del servidor web. Aunque inicialmente se planificó utilizar Apache, finalmente decidimos instalar y configurar Nginx.
@@ -46,9 +48,13 @@ Esta decisión se justifica por motivos puramente técnicos y de rendimiento:
 
 * **Velocidad en consultas en segundo plano:** Como nuestra web utiliza funciones que consultan continuamente las tablas de llamadas y transmisiones en segundo plano, Nginx es capaz de enviar y recibir estos datos de una forma muchísimo más rápida y fluida, evitando que la página web se quede congelada.
 
+
+
 ## 4.3. Mecanismos de Seguridad: Llaves SSH y Grupos de Seguridad
 
 Para garantizar que nuestro servidor no sea interceptado o controlado por terceros en el entorno digital de Amazon Web Services, la plataforma nos obliga a establecer dos barreras de protección obligatorias durante la creación de la instancia: el cifrado por par de llaves y el aislamiento  mediante un firewall lógico.
+
+
 
 ### 4.3.1. Autenticación Criptográfica: El Par de Llaves (Key Pair)
 
@@ -59,8 +65,11 @@ Este mecanismo funciona  como un candado y su llave:
 * **La Llave Pública:** Se queda guardada dentro del propio servidor en la nube. Actúa como el candado.
 
 * **La Llave Privada:** Es el archivo  que nos descargamos a nuestra computadora física. Actúa como la llave para abrir el candado
+  
 
 ![Página de AWS al crear la máquina virtual](images/image17.png)
+
+
 
 ### 4.3.2. Aislamiento de Red: El Grupo de Seguridad (Security Group)
 
@@ -70,7 +79,10 @@ Por defecto, AWS aplica una política de seguridad estricta: todo lo que intente
 
 
 ![Página de AWS al crear la máquina virtual](images/image53.png)
+
 ![Página de AWS al crear la máquina virtual](images/image47.png)
+
+
 
 ## 4.5. Configuración de una IP Elástica (Elastic IP)
 
@@ -95,32 +107,48 @@ Ahora desde la seccion de "Instancias" seleccionamos nuestra maquina y le daremo
 ![Página de AWS al crear la máquina virtual](images/image16.png)
 
 
-## 4.4. Procedimiento de Implementación
+
+## 4.6. Procedimiento de Implementación
+
+Una vez que la infraestructura física y el direccionamiento de red quedaron completamente estabilizados gracias a la IP Elástica,lo siguiente que harmeos del proyecto consistira en la preparación interna del sistema operativo. El objetivo de esta fase es instalar y configurar las herramientas de software necesarias  para que el servidor sea capaz de procesar las peticiones web y conectarse con el exterior.
+
+Para llevar a cabo este procedimiento de forma limpia y ordenada, ejecutamos una secuencia de comandos estructurada directamente desde la consola de administración de Ubuntu Server.
+
+
+### 4.6.1. Actualización de los Repositorios del Sistema
 
 Antes de la instalación de cualquier servicio, hemos realizado una actualización inicial del sistema.
 
 ![Página de AWS al crear la máquina virtual](images/image4.png)
 ![Página de AWS al crear la máquina virtual](images/image41.png)
 
-Ahora hemos creado un usuario administrativo nominal para evitar el uso del usuario ubuntu por defecto. El acceso se realiza exclusivamente mediante autenticación por clave pública RSA eliminando cualquier vulnerabilidad asociada a contraseñas.
+## 4.6.2. Creación y Configuración del Usuario
+
+Trabajar directamente con el usuario administrador absoluto (root) o que crea AWS por defecto (ubuntu) es una práctica de alto riesgo. Si un atacante consiguiera interceptar la sesión, tendría el control total e inmediato de toda nuestra infraestructura.
+
+Para Eliminar este peligro, procedimos a crear un usuario administrador personalizado dentro del sistema operativo, el cual cuenta con contraseñas seguras y permisos supervisados.
 
 ![Página de AWS al crear la máquina virtual](images/image36.png)
 
-Para eliminar la dependencia de contraseñas, hemos transferido las credenciales de acceso del usuario ubuntu al nuevo usuario nominal:
-Creamos el directorio de configuración SSH para el nuevo usuario
-Copiamos las llaves públicas autorizadas
-Ajustamos los permisos y el propietario ( Para la seguridad SSH)
+Para eliminar la dependencia de contraseñas, hemos transferido las credenciales de acceso del usuario ubuntu al nuevo usuario:
+
+* **Creamos el directorio de configuración SSH para el nuevo usuario**
+* **Copiamos las llaves públicas autorizadas**
+* **Ajustamos los permisos y el propietario ( Para la seguridad SSH)**
 
 ![Página de AWS al crear la máquina virtual](images/image34.png)
 ![Página de AWS al crear la máquina virtual](images/image23.png)
 
 
 
-## 4.5. Aseguramiento de la Infraestructura (Firewall)
+## 4.6.3. Configuración del Cortafuegos Interno del Sistema Operativo (UFW)
 
-Hemos implementado una política de "denegación por defecto y solo permitimos el tráfico necesario para el funcionamiento del servidor
+Aunque previamente configuramos el Grupo de Seguridad externo en la consola web de AWS (el cual actúa como un firewall en la nube).
+Necessitamos un firewall interno porque si el firewall de Amazon llegara a fallar, el propio sistema operativo Ubuntu debe tener su propia armadura interna activa para detener conexiones no deseadas.
 
-Configuramos la política por defecto
+Para levantar este segundo firewall, configuramos UFW
+
+Primero pondremos por defecto todos los puertos desabilitados
 
 ![Página de AWS al crear la máquina virtual](images/image42.png)
 
@@ -141,6 +169,8 @@ Verificamos
 Activamos el firewall
 
 ![Página de AWS al crear la máquina virtual](images/image29.png)
+
+A partir de este momento, cualquier intento de conexión hacia un puerto que no hayamos autorizado explícitamente será descartado en el mismo instante en que toque la interfaz de red del Server-Web.
 
 ## Implementación del Servicio de Transferencia de Ficheros (SFTP)
 
