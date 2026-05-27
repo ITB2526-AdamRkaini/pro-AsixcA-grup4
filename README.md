@@ -550,6 +550,15 @@ Por defecto, AWS aplica una política de seguridad estricta: todo lo que intente
 
 ![Página de AWS al crear la máquina virtual](images/image47.png)
 
+* **Puerto TCP 22 (SSH):** Destinado a la administración remota, gestión del sistema operativo Ubuntu Server y tareas de despliegue por consola mediante terminal segura.
+
+* **Puerto TCP 80 (HTTP):** Habilitado para permitir el acceso público y la navegación de los usuarios a la plataforma web a través de peticiones HTTP estándar.
+
+* **Puerto TCP 443 (HTTPS):** Configurado para canalizar de forma segura el tráfico web cifrado mediante la implementación de certificados SSL/TLS.
+
+* **Puerto TCP 3306 (MySQL):** Apertura técnica que permite la comunicación y las consultas relacionales  de la aplicación con el motor de la Base de Datos.
+
+* **Protocolo ICMP IPv4 (Todos los ICMP):** Permite comprobar de forma inmediata el estado y la latencia entre las instancias del entorno (ping).
 
 
 ## 4.5. Configuración de una IP Elástica (Elastic IP)
