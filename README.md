@@ -64,16 +64,22 @@ Ajustamos los permisos y el propietario ( Para la seguridad SSH)
 ![Página de AWS al crear la máquina virtual](images/image34.png)
 ![Página de AWS al crear la máquina virtual](images/image23.png)
 
+
+
 ## 4.5. Aseguramiento de la Infraestructura (Firewall)
 
 Hemos implementado una política de "denegación por defecto y solo permitimos el tráfico necesario para el funcionamiento del servidor
+
 Configuramos la política por defecto
 
 ![Página de AWS al crear la máquina virtual](images/image42.png)
 
 Permitimos solo los puertos necesarios
+
 Puerto 22/TCP — Protocolo SSH
+
 Puerto 80/TCP — Protocolo HTTP
+
 Puerto 443/TCP — Protocolo HTTPS
 
 ![Página de AWS al crear la máquina virtual](images/image22.png)
