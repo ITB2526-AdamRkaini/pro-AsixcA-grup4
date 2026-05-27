@@ -108,3 +108,142 @@ Nginx no usa VirtualHost como Apache, usa lo que se llaman server blocks. Vamos 
 ![Página de AWS al crear la máquina virtual](images/image38.png)
 
 Ahora creamos el índice el cual vamos a ver al acceder a la página y ponemos una frase de prueba
+
+![Página de AWS al crear la máquina virtual](images/image2.png)
+
+![Página de AWS al crear la máquina virtual](images/image51.png)
+
+Por último crearemos y configuraremos el fichero de configuración y lo activaremos 
+
+![Página de AWS al crear la máquina virtual](images/image37.png)
+
+Comprobamos que no hay errores de sintaxis 
+
+![Página de AWS al crear la máquina virtual](images/image19.png)
+
+Añadimos el enlace lógico para que la configuración se active en la web y reiniciamos.
+
+![Página de AWS al crear la máquina virtual](images/image54.png)
+
+También eliminaremos los archivos por defecto para asegurar que solo pueda acceder a nuestra web.
+
+![Página de AWS al crear la máquina virtual](images/image1.png)
+
+Verfificacion:
+
+![Página de AWS al crear la máquina virtual](images/image20.png)
+
+
+## Conexión con la Base de Datos
+Instalamos el cliente mariadb para que nos podamos conectar
+
+![Página de AWS al crear la máquina virtual](images/image45.png)
+
+Mostrem com el port de SQL és accessible.
+
+![Página de AWS al crear la máquina virtual](images/image3.png)
+
+I aquí podem veure com podem entrar a la BBDD desde el web server amb les dades que ens han proporcionat.
+
+![Página de AWS al crear la máquina virtual](images/image55.png)
+
+Una vegada comprovat que podem accedir a la Base de Dades creem un arxiu dins del directori creat anteriorment (/var/www/innovate_web) y configurem amb els paràmetres que hem vist anteriorment.
+
+![Página de AWS al crear la máquina virtual](images/image46.png)
+
+
+## 4.6. Página Web
+Usaremos php ya que HTML es estático, el servidor web se limita a transmitir el archivo tal cual está almacenado en el disco duro hacia el navegador del cliente, el cual realiza el trabajo.
+
+Como ahora vamos a usar formato php, tenemos que instalar los paquetes necesarios para que pueda trabajar sin problemas ya que si no los instalamos es como que el servidor no puede leer o traducir esos datos.
+
+![Página de AWS al crear la máquina virtual](images/image18.png)
+
+![Página de AWS al crear la máquina virtual](images/image14.png)
+
+Ahora para aplicarlo tenemos que editar el fichero de configuración de nginx que hemos utilizado anteriormente para cambiar a php 
+
+IMPORTANTE QUE PONGAMOS LA VERSIÓN QUE ESTAMOS USANDO 
+
+![Página de AWS al crear la máquina virtual](images/image44.png)
+
+
+## Archivos Creados
+Para la  web, se ha desplegado un árbol de archivos donde cada componente cumple una función específica dentro de la aplicación:
+
+![Página de AWS al crear la máquina virtual](images/image11.png)
+
+### config.php (Configuración): 
+Este archivo es fundamental porque aquí es donde se configura la conexión a la base de datos. Guarda los datos clave como la dirección IP del servidor (54.205.31.97), el usuario, la contraseña y el nombre de la base de datos.
+
+![Página de AWS al crear la máquina virtual](images/image39.png)
+
+### funciones.php (Herramientas): 
+Es como una caja de herramientas. Contiene funciones de ayuda que se usan en la web, como por ejemplo el código necesario para transformar los datos de las tablas en un archivo descargable de Excel o CSV.
+
+![Página de AWS al crear la máquina virtual](images/image27.png)
+
+### auth.php : 
+Es el vigilante de la web. Su única función es revisar si alguien intenta entrar a la web escribiendo la dirección IP sin haberse identificado, este archivo lo detecta y lo envía directamente a la pantalla de login.
+
+![Página de AWS al crear la máquina virtual](images/image25.png)
+
+### login.php (Pantalla de Acceso): 
+Es el formulario donde el usuario pone su nombre y contraseña. Este archivo habla con el servidor de la empresa (LDAP/Directorio Activo) para comprobar que el usuario realmente trabaja ahí y que sus datos son correctos. 
+
+![Página de AWS al crear la máquina virtual](images/image30.png)
+
+Aquí podemos ver la parte del archivo que hemos configurado para que se pueda conectar al Servidor LDAP
+
+![Página de AWS al crear la máquina virtual](images/image32.png)
+
+### dashboard.php (Panel de Bienvenida): 
+Es la primera pantalla que se ve al poner bien su contraseña. Le da la bienvenida, le muestra su nombre de usuario le da acceso a la gestión de las tablas.
+
+![Página de AWS al crear la máquina virtual](images/image5.png)
+
+### index.php (Pantalla Principal de Gestión): 
+Es la página central de nuestro proyecto donde se junta todo. Muestra el menú lateral con las 11 tablas de la base de datos, el buscador en tiempo real, la tabla con los datos de los empleados o alertas, y los botones para exportar o cerrar sesión.
+
+![Página de AWS al crear la máquina virtual](images/image10.png)
+
+### buscador.php (El Motor de Búsqueda): 
+Trabaja en segundo plano. Cuando el usuario escribe una letra en el buscador del index.php, este archivo va a la base de datos, busca lo que coincide y lo devuelve al instante.
+
+![Página de AWS al crear la máquina virtual](images/image24.png)
+
+### logout.php (Cierre de Sesión): 
+Su función es borrar de la memoria del servidor cuando este hace clic en "Cerrar Sesión". Limpia los accesos y bloquea la pantalla para que nadie pueda volver a entrar dándole al botón de "Atrás" del navegador.
+
+![Página de AWS al crear la máquina virtual](images/image27.png)
+
+### Editar (Modificar datos): 
+Esta función permite al usuario cambiar la información de una fila que ya existe en la base de datos (por ejemplo, actualizar el departamento de un empleado o corregir una alerta de backup).
+
+![Página de AWS al crear la máquina virtual](images/image35.png)
+
+![Página de AWS al crear la máquina virtual](images/image12.png)
+
+
+### Eliminar (Borrar datos): 
+Esta función permite limpiar el sistema eliminando registros que ya no son necesarios o que son erróneos (por ejemplo, borrar un aviso viejo). 
+
+![Página de AWS al crear la máquina virtual](images/image35.png)
+
+Si le damos al botón de eliminar nos aparece este mensaje 
+
+![Página de AWS al crear la máquina virtual](images/image49.png)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
