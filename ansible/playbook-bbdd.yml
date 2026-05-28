@@ -1,0 +1,299 @@
+---
+- name: Desplegament complet servidor BD InnovateTech
+  hosts: all
+  become: yes
+  remote_user: ubuntu
+  vars:
+    db_name: innovatetech_db
+    db_root_password: @ITB2026
+    db_admin_user: adminitb
+    db_admin_password: @ITB2026
+    backup_dir: /var/backups/innovatetech
+
+  tasks:
+
+    - name: Actualitzar repositoris
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Instal·lar paquets necessaris
+      apt:
+        name:
+          - mariadb-server
+          - mariadb-client
+          - python3-pymysql
+          - ufw
+        state: present
+
+    - name: Arrencar i activar MariaDB
+      service:
+        name: mariadb
+        state: started
+        enabled: yes
+
+    - name: Configuració personalitzada MariaDB
+      copy:
+        dest: /etc/mysql/mariadb.conf.d/99-innovatetech.cnf
+        content: |
+          [mysqld]
+          bind-address = 0.0.0.0
+          max_connections = 150
+          character-set-server = utf8mb4
+          collation-server = utf8mb4_unicode_ci
+          event_scheduler = ON
+          [mysql]
+          default-character-set = utf8mb4
+      notify: restart mariadb
+
+    - name: Crear directori de backups
+      file:
+        path: "{{ backup_dir }}"
+        state: directory
+        owner: mysql
+        group: mysql
+        mode: '0755'
+
+    - name: Crear fitxer .my.cnf per a root
+      copy:
+        dest: /root/.my.cnf
+        content: |
+          [client]
+          user=root
+          password={{ db_root_password }}
+        mode: '0600'
+
+    - name: Establir contrasenya root MariaDB
+      mysql_user:
+        name: root
+        host: localhost
+        password: "{{ db_root_password }}"
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+        check_implicit_admin: yes
+        state: present
+
+    - name: Eliminar usuaris anònims
+      mysql_user:
+        name: ''
+        host_all: yes
+        login_user: root
+        login_password: "{{ db_root_password }}"
+        state: absent
+
+    - name: Eliminar base de dades test
+      mysql_db:
+        name: test
+        login_user: root
+        login_password: "{{ db_root_password }}"
+        state: absent
+
+    - name: Crear base de dades innovatetech_db
+      mysql_db:
+        name: "{{ db_name }}"
+        encoding: utf8mb4
+        collation: utf8mb4_unicode_ci
+        login_user: root
+        login_password: "{{ db_root_password }}"
+        state: present
+
+    - name: Copiar schema SQL
+      copy:
+        dest: /tmp/schema.sql
+        content: |
+          USE innovatetech_db;
+          CREATE TABLE IF NOT EXISTS departaments (
+              codi_dept VARCHAR(10) PRIMARY KEY,
+              nom VARCHAR(100) NOT NULL,
+              telefon VARCHAR(20)
+          );
+          CREATE TABLE IF NOT EXISTS empleats (
+              dni VARCHAR(9) PRIMARY KEY,
+              nom VARCHAR(50) NOT NULL,
+              cognoms VARCHAR(100) NOT NULL,
+              adreca VARCHAR(200),
+              telefon VARCHAR(20),
+              codi_dept VARCHAR(10) NOT NULL,
+              FOREIGN KEY (codi_dept) REFERENCES departaments(codi_dept)
+          );
+          CREATE TABLE IF NOT EXISTS grups_qualitat (
+              id_grup INT AUTO_INCREMENT PRIMARY KEY,
+              nom_grup VARCHAR(50) NOT NULL,
+              qualitat ENUM('alta','mitja','baixa') NOT NULL,
+              max_resolucio VARCHAR(20),
+              max_bitrate_kbps INT
+          );
+          CREATE TABLE IF NOT EXISTS usuaris_comunicacio (
+              id_usuari INT AUTO_INCREMENT PRIMARY KEY,
+              nom_complet VARCHAR(150) NOT NULL,
+              email VARCHAR(100) NOT NULL UNIQUE,
+              extensio VARCHAR(20) UNIQUE,
+              estat ENUM('actiu','bloquejat') DEFAULT 'actiu',
+              tipus ENUM('intern','extern') NOT NULL,
+              rol VARCHAR(50),
+              id_grup INT,
+              data_bloqueig DATETIME,
+              bloqueig_temporal BOOLEAN DEFAULT FALSE,
+              data_fi_bloqueig DATETIME,
+              FOREIGN KEY (id_grup) REFERENCES grups_qualitat(id_grup)
+          );
+          CREATE TABLE IF NOT EXISTS configuracio_servidor (
+              id_config INT AUTO_INCREMENT PRIMARY KEY,
+              parametre VARCHAR(100) NOT NULL,
+              valor VARCHAR(200) NOT NULL,
+              protocol VARCHAR(50),
+              port INT,
+              descripcio VARCHAR(255)
+          );
+          CREATE TABLE IF NOT EXISTS trucades (
+              id_trucada INT AUTO_INCREMENT PRIMARY KEY,
+              id_originador INT NOT NULL,
+              id_destinatari INT NOT NULL,
+              data_inici DATETIME NOT NULL,
+              data_fi DATETIME,
+              durada_minuts DECIMAL(10,2),
+              qualitat_usada ENUM('alta','mitja','baixa'),
+              enllac_videotrucada VARCHAR(255),
+              FOREIGN KEY (id_originador) REFERENCES usuaris_comunicacio(id_usuari),
+              FOREIGN KEY (id_destinatari) REFERENCES usuaris_comunicacio(id_usuari)
+          );
+          CREATE TABLE IF NOT EXISTS valoracions_trucades (
+              id_valoracio INT AUTO_INCREMENT PRIMARY KEY,
+              id_trucada INT NOT NULL,
+              puntuacio TINYINT CHECK (puntuacio BETWEEN 1 AND 5),
+              comentari TEXT,
+              data_valoracio DATETIME DEFAULT NOW(),
+              FOREIGN KEY (id_trucada) REFERENCES trucades(id_trucada)
+          );
+          CREATE TABLE IF NOT EXISTS videos_streaming (
+              id_video INT AUTO_INCREMENT PRIMARY KEY,
+              titol VARCHAR(200) NOT NULL,
+              descripcio TEXT,
+              categoria VARCHAR(100),
+              durada_segons INT,
+              data_publicacio DATE,
+              enllac_streaming VARCHAR(500) NOT NULL,
+              paraules_clau TEXT
+          );
+          CREATE TABLE IF NOT EXISTS mesures_amplada_banda (
+              id_mesura INT AUTO_INCREMENT PRIMARY KEY,
+              data_hora DATETIME DEFAULT NOW(),
+              equip_mesurat VARCHAR(100) NOT NULL,
+              id_operari INT NOT NULL,
+              velocitat_baixada_mbps DECIMAL(10,2),
+              velocitat_pujada_mbps DECIMAL(10,2),
+              latencia_ms INT,
+              resultat ENUM('acceptable','no_acceptable') NOT NULL,
+              notes TEXT,
+              FOREIGN KEY (id_operari) REFERENCES usuaris_comunicacio(id_usuari)
+          );
+          CREATE TABLE IF NOT EXISTS avisos (
+              id_avis INT AUTO_INCREMENT PRIMARY KEY,
+              usuari_bd VARCHAR(100) NOT NULL,
+              taula_afectada VARCHAR(100),
+              operacio VARCHAR(50),
+              data_hora DATETIME DEFAULT NOW(),
+              descripcio TEXT
+          );
+          CREATE TABLE IF NOT EXISTS control_backups (
+              id_backup INT AUTO_INCREMENT PRIMARY KEY,
+              data_hora DATETIME DEFAULT NOW(),
+              taules_incloses TEXT,
+              resultat ENUM('ok','error') NOT NULL,
+              notes TEXT
+          );
+          CREATE ROLE IF NOT EXISTS 'admin';
+          CREATE ROLE IF NOT EXISTS 'vendes';
+          CREATE ROLE IF NOT EXISTS 'administracio';
+          CREATE ROLE IF NOT EXISTS 'treballador';
+          GRANT ALL PRIVILEGES ON innovatetech_db.* TO 'admin';
+          GRANT SELECT, INSERT, UPDATE ON innovatetech_db.usuaris_comunicacio TO 'vendes';
+          GRANT SELECT, INSERT, UPDATE ON innovatetech_db.trucades TO 'vendes';
+          GRANT SELECT, INSERT, UPDATE ON innovatetech_db.valoracions_trucades TO 'vendes';
+          GRANT SELECT ON innovatetech_db.videos_streaming TO 'vendes';
+          GRANT SELECT ON innovatetech_db.grups_qualitat TO 'vendes';
+          GRANT SELECT, INSERT, UPDATE ON innovatetech_db.empleats TO 'administracio';
+          GRANT SELECT, INSERT, UPDATE ON innovatetech_db.departaments TO 'administracio';
+          GRANT SELECT, INSERT, UPDATE ON innovatetech_db.grups_qualitat TO 'administracio';
+          GRANT SELECT ON innovatetech_db.videos_streaming TO 'treballador';
+          GRANT SELECT ON innovatetech_db.grups_qualitat TO 'treballador';
+          GRANT SELECT ON innovatetech_db.configuracio_servidor TO 'treballador';
+          GRANT SELECT, INSERT ON innovatetech_db.trucades TO 'treballador';
+          FLUSH PRIVILEGES;
+
+    - name: Importar schema
+      mysql_db:
+        name: "{{ db_name }}"
+        login_user: root
+        login_password: "{{ db_root_password }}"
+        state: import
+        target: /tmp/schema.sql
+
+    - name: Verificar triggers existents
+      command: >
+        mysql -u root -p{{ db_root_password }}
+        -e "SELECT COUNT(*) as total FROM information_schema.TRIGGERS
+        WHERE TRIGGER_SCHEMA='innovatetech_db';"
+      register: trigger_count
+
+    - name: Mostrar nombre de triggers
+      debug:
+        msg: "Triggers trobats: {{ trigger_count.stdout }}"
+
+    - name: Crear usuari adminitb a MariaDB
+      mysql_user:
+        name: "{{ db_admin_user }}"
+        host: '%'
+        password: "{{ db_admin_password }}"
+        priv: "{{ db_name }}.*:ALL"
+        login_user: root
+        login_password: "{{ db_root_password }}"
+        state: present
+
+    - name: Crear usuari adminitb al sistema
+      user:
+        name: adminitb
+        shell: /bin/bash
+        groups: sudo
+        append: yes
+        state: present
+
+    - name: Crear directori .ssh per adminitb
+      file:
+        path: /home/adminitb/.ssh
+        state: directory
+        owner: adminitb
+        group: adminitb
+        mode: '0700'
+
+    - name: Copiar clau SSH a adminitb
+      copy:
+        src: /home/ubuntu/.ssh/authorized_keys
+        dest: /home/adminitb/.ssh/authorized_keys
+        remote_src: yes
+        owner: adminitb
+        group: adminitb
+        mode: '0600'
+
+    - name: Activar UFW
+      ufw:
+        state: enabled
+        policy: deny
+
+    - name: Permetre SSH
+      ufw:
+        rule: allow
+        port: '22'
+        proto: tcp
+
+    - name: Permetre MySQL des de la VPC
+      ufw:
+        rule: allow
+        port: '3306'
+        proto: tcp
+        src: '10.0.0.0/16'
+
+  handlers:
+    - name: restart mariadb
+      service:
+        name: mariadb
+        state: restarted
