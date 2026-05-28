@@ -10,7 +10,6 @@
 - [Fase 2 — Servicios de Audio y Vídeo](#fase-2-implantación-de-los-servicios-de-audio-vídeo-y-videoconferencia)
 - [Fase 3 — Base de Datos](#fase-3-creación-de-la-base-de-datos)
 - [Fase 4 — Servidor Web](#fase-4-server-web)
-- [Fase 5 — Comprobación funcionamiento](#fase-5-comprobaciones-de-funcionamiento)
 
 # FASE 1: ARQUITECTURA DEL ESPACIO FÍSICO, DISEÑO ESTRUCTURAL Y SEGURIDAD
 
@@ -360,25 +359,25 @@ Para que solo los usuarios registrados en nuestro directorio LDAP puedan crear c
 
 Instalamos los paquetes `sasl2-bin` y `libsasl2-modules-ldap` que permiten a Cyrus conectarse con el servidor LDAP:
 
-![Instalación de sasl2-bin y libsasl2-modules-ldap](images/image5.png)
+![Instalación de sasl2-bin y libsasl2-modules-ldap](images.vids/image5.png)
 
 ### Configuración de saslauthd
 
 Editamos el archivo `/etc/saslauthd.conf` para apuntar al servidor LDAP de la empresa. Definimos la dirección del servidor, la base de búsqueda y el filtro de usuario:
 
-![Configuración de /etc/saslauthd.conf](images/image2.png)
+![Configuración de /etc/saslauthd.conf](images.vids/image2.png)
 
 ### Generación del certificado autofirmado
 
 Generamos un certificado SSL autofirmado con validez de 365 días para el dominio de la videoconferencia:
 
-![Generación del certificado SSL con openssl](images/image3.png)
+![Generación del certificado SSL con openssl](images.vids/image3.png)
 
 ### Configuración de Prosody (autenticación Cyrus + invitados)
 
 Editamos el archivo `/etc/prosody/conf.avail/proyectofinal.cfg.lua` para indicarle a Jitsi que use SASL/LDAP a través de Cyrus. Configuramos el VirtualHost principal con autenticación `cyrus` y el VirtualHost de invitados con autenticación anónima:
 
-![Configuración de Prosody con Cyrus y guest](images/image4.png)
+![Configuración de Prosody con Cyrus y guest](images.vids/image4.png)
 
 ```lua
 VirtualHost "videoconferencia.proyectofinal.cat"
@@ -394,7 +393,8 @@ VirtualHost "guest.videoconferencia.proyectofinal.cat"
 
 Iniciamos el servicio y lo habilitamos para que arranque automáticamente con el sistema:
 
-![Inicio y habilitación de saslauthd](images/image6.png)
+![Inicio y habilitación de saslauthd](images.vids/image6.png)
+
 ---
  
 ## 2.6. Server-logs-Adam
