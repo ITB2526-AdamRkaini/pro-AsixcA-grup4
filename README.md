@@ -83,6 +83,200 @@ No todo tiene que estar en nuestra oficina. Vamos a ser prácticos y a repartir 
 
 
 # FASE 2. IMPLANTACIÓN DE LOS SERVICIOS DE AUDIO-VÍDEO Y VIDEOCONFERENCIA
+# 2. Servidor de Audio y Vídeo
+
+## 2.1 Preparación del entorno
+
+![](imagenesSteven/31_launch_instance_name_videoaudio.png)
+
+![](imagenesSteven/32_ami_ubuntu.png)
+
+![](imagenesSteven/33_instance_type_t2medium_keypair.png)
+
+![](imagenesSteven/34_network_settings.png)
+
+![](imagenesSteven/35_configure_storage.png)
+
+Asociamos la IP elástica a la instancia y configuramos las reglas de entrada:
+
+![](imagenesSteven/36_associate_elastic_ip.png)
+
+![](imagenesSteven/37_inbound_rules.png)
+
+Creamos el usuario **steven** y le asignamos permisos sudo:
+
+![](imagenesSteven/38_adduser_steven_usermod.png)
+
+Cambiamos el hostname de la máquina a **AUDIOVIDEOPRO**:
+
+![](imagenesSteven/39_nano_hostname_audiovideopro.png)
+
+---
+
+## 2.2 Instalación y configuración del servicio de streaming de audio (icecast)
+
+Durante la instalación de icecast2 aparece el asistente de configuración:
+
+![](imagenesSteven/40_icecast2_configure_wizard.png)
+
+Introducimos la contraseña de las fuentes (source password):
+
+![](imagenesSteven/41_icecast2_source_password.png)
+
+Activamos **icecast2** poniendo `ENABLE=true` en `/etc/default/icecast2`:
+
+![](imagenesSteven/42_icecast2_enable_true.png)
+
+Iniciamos el servicio y nos conectamos al puerto **8000**:
+
+![](imagenesSteven/43_icecast2_start_status.png)
+
+![](imagenesSteven/44_icecast2_status_web_empty.png)
+
+---
+
+## 2.3 Instalación y configuración del emisor
+
+Creamos la carpeta de ice2 y música, donde se guardarán los archivos de música y la lista del emisor:
+
+![](imagenesSteven/45_mkdir_ice2_musica.png)
+
+![](imagenesSteven/46_chmod_ice2.png)
+
+Instalamos el emisor **ices2**:
+
+![](imagenesSteven/47_apt_install_ices2.png)
+
+Creamos la carpeta donde guardamos la configuración del emisor y copiamos el archivo **ices-playlist.xml**:
+
+![](imagenesSteven/48_mkdir_etcices2_cp_playlist.png)
+
+Creamos la carpeta para los logs del emisor:
+
+![](imagenesSteven/49_mkdir_varlogices.png)
+
+Abrimos el archivo **ices-playlist.xml** y lo editamos. Indicamos con un 1 para que funcione en background y le indicamos la ruta de los logs:
+
+![](imagenesSteven/50_ices_playlist_background_logs.png)
+
+Modificamos la **metadata** y le asignamos nombres a las diferentes variables:
+
+![](imagenesSteven/51_ices_playlist_metadata.png)
+
+Definimos la ubicación de la lista y que se repita las canciones una vez acabada la lista:
+
+![](imagenesSteven/52_ices_playlist_input_instance_wrong.png)
+
+Definimos **hostname**, **puerto**, **contraseña** y **montaje**:
+
+![](imagenesSteven/53_ices_playlist_instance_correct.png)
+
+Descargamos la música desde el github y la guardamos en `/ice2/musica`:
+
+![](imagenesSteven/54_wget_mp3_music.png)
+
+![](imagenesSteven/55_ls_musica_mp3.png)
+
+Pasamos la música a la lista (**lista.txt**):
+
+![](imagenesSteven/56_find_lista_txt_mp3.png)
+
+![](imagenesSteven/57_lista_txt_mp3_content.png)
+
+Iniciamos el emisor, comprobamos los logs y reiniciamos icecast2:
+
+![](imagenesSteven/58_ices2_launch.png)
+
+![](imagenesSteven/59_ices_log_error_wrong_path.png)
+
+![](imagenesSteven/60_icecast2_restart_status.png)
+
+Mirando los logs me di cuenta que tenía mal definida las rutas, había puesto `/ices2` en vez de `/ice2`:
+
+![](imagenesSteven/61_ices_playlist_input_fixed.png)
+
+Al volverlo a ejecutar me daba error de formato, resulta que ices2 no soporta **mp3** y tuve que cambiar el formato a **ogg**:
+
+![](imagenesSteven/62_ices_log_mp3_format_error.png)
+
+![](imagenesSteven/63_rm_mp3_files.png)
+
+Descargamos la música en formato ogg y actualizamos la lista:
+
+![](imagenesSteven/64_wget_ogg_music.png)
+
+![](imagenesSteven/65_lista_txt_ogg_content.png)
+
+![](imagenesSteven/66_icecast2_restart_after_ogg.png)
+
+Una vez cambiada la música y reiniciado el servicio ya funciona correctamente:
+
+![](imagenesSteven/67_icecast2_status_working.png)
+
+---
+
+## 2.4 Instalación y configuración del servicio de video streaming
+
+Instalamos los prerequisitos y añadimos el repositorio de **Jellyfin**:
+
+![](imagenesSteven/68_apt_install_prerequisites.png)
+
+![](imagenesSteven/69_mkdir_keyrings.png)
+
+![](imagenesSteven/70_curl_gpg_key.png)
+
+![](imagenesSteven/71_echo_jellyfin_repo.png)
+
+![](imagenesSteven/72_apt_install_jellyfin.png)
+
+![](imagenesSteven/73_jellyfin_service_status.png)
+
+Creamos la carpeta donde se guardarán los vídeos:
+
+![](imagenesSteven/74_mkdir_videos.png)
+
+Buscamos cualquier vídeo en YouTube y con una herramienta online copiamos el enlace del vídeo y lo descargamos:
+
+![](imagenesSteven/75_youtube_share_url.png)
+
+![](imagenesSteven/76_online_download_tool.png)
+
+Subimos el vídeo al **github** y lo descargamos en la máquina:
+
+![](imagenesSteven/77_github_commit_video.png)
+
+![](imagenesSteven/78_github_video_file.png)
+
+Nos descargamos los vídeos del github y cambiamos permisos de la carpeta para que funcione:
+
+![](imagenesSteven/79_wget_video_github.png)
+
+![](imagenesSteven/80_ls_videos.png)
+
+Creamos la estructura de carpetas para Jellyfin, asignamos permisos y movemos los vídeos:
+
+![](imagenesSteven/81_mkdir_jellyfin_videos.png)
+
+![](imagenesSteven/82_chmod_jellyfin.png)
+
+![](imagenesSteven/83_mv_videos_jellyfin.png)
+
+Una vez ya está todo montado entramos a la herramienta web a través del puerto **8096**:
+
+![](imagenesSteven/84_jellyfin_web_welcome.png)
+
+![](imagenesSteven/85_jellyfin_user_setup.png)
+
+Definimos la carpeta donde se ubicarán los vídeos de esta biblioteca:
+
+![](imagenesSteven/86_jellyfin_library_folder.png)
+
+![](imagenesSteven/87_jellyfin_video_library.png)
+
+Reproduce vídeo sin problema:
+
+![](imagenesSteven/88_jellyfin_video_playing.png)
+
 ## 2.5. Server-Videoconferencias
  
 Creación de usuario de administración:
@@ -485,54 +679,85 @@ configuracio_servidor (id_config PK, parametre, valor,
 # 3.7. LDAP
 
 ## Creación de la estancia EC2
+
 ![](imagenesSteven/01_launch_instance_name.png)
 ![](imagenesSteven/02_ami_ubuntu.png)
 ![](imagenesSteven/03_instance_type_t2small.png)
 ![](imagenesSteven/04_key_pair.png)
 ![](imagenesSteven/05_network_settings.png)
 ![](imagenesSteven/06_configure_storage.png)
+
 Actualizamos el sistema:
+
 ![](imagenesSteven/07_apt_update.png)
 ![](imagenesSteven/08_apt_upgrade.png)
+
 Asignamos una IP elástica a la instancia:
+
 ![](imagenesSteven/09_allocate_elastic_ip.png)
 ![](imagenesSteven/10_elastic_ip_allocated.png)
+
 Asociamos la IP elástica a la instancia y configuramos las reglas de entrada:
+
 ![](imagenesSteven/11_associate_elastic_ip.png)
 ![](imagenesSteven/12_inbound_rules.png)
+
 Cambiamos el hostname de la máquina:
+
 ![](imagenesSteven/13_nano_hostname.png)
 ![](imagenesSteven/14_hostname_ldappro.png)
 
 ## Instalación y configuración del servidor LDAP
 
 Instalamos los paquetes necesarios:
+
 ![](imagenesSteven/15_apt_install_slapd.png)
+
 Durante la instalación configuramos slapd. Introducimos la contraseña de administrador:
+
 ![](imagenesSteven/16_slapd_admin_password.png)
+
 Definimos el nombre de dominio DNS:
+
 ![](imagenesSteven/17_slapd_dns_domain.png)
+
 Definimos el nombre de la organización:
+
 ![](imagenesSteven/18_slapd_org_name.png)
+
 Volvemos a introducir la contraseña de administrador y la confirmamos:
+
 ![](imagenesSteven/19_slapd_admin_password2.png)
 ![](imagenesSteven/20_slapd_confirm_password.png)
+
 Indicamos que no se elimine la base de datos al purgar slapd:
+
 ![](imagenesSteven/21_slapd_purge_no.png)
+
 Movemos la base de datos antigua:
+
 ![](imagenesSteven/22_slapd_move_old_db.png)
+
 Reconfiguración completada correctamente:
+
 ![](imagenesSteven/23_dpkg_reconfigure_output.png)
+
 Comprobamos que se ha configurado correctamente:
+
 ![](imagenesSteven/24_ldapsearch_base.png)
+
 Creamos la carpeta donde se guardarán todos los archivos ldif:
+
 ![](imagenesSteven/25_mkdir_ldap.png)
 
 ## Creación de la estructura LDAP
 
 Se harán 2 OUs, **users** y **groups**:
+
 ![](imagenesSteven/26_core_ldif.png)
+
 Comprobación:
+
 ![](imagenesSteven/27_ldapadd_core.png)
 
 ## Creación de los usuarios
