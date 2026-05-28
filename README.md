@@ -114,6 +114,15 @@ Cambiamos el hostname de la máquina a **AUDIOVIDEOPRO**:
 
 ---
 
+### Descripción del servicio de audio — Icecast2
+
+**Icecast2** es un servidor de streaming de audio de código abierto que permite
+distribuir contenido en tiempo real a múltiples clientes simultáneos.
+En InnovateTech se utiliza para emitir música corporativa, comunicados internos
+y sesiones de formación en directo. El flujo es:
+**Fuente (ices2) → Servidor (Icecast2, puerto 8000) → Clientes (navegador/VLC)**.
+Se usa formato **OGG Vorbis** por su licencia libre y excelente relación calidad/ancho de banda.
+
 ## 2.2 Instalación y configuración del servicio de streaming de audio (icecast)
 
 Durante la instalación de icecast2 aparece el asistente de configuración:
@@ -215,6 +224,13 @@ Una vez cambiada la música y reiniciado el servicio ya funciona correctamente:
 ![](imagenesSteven/67_icecast2_status_working.png)
 
 ---
+### Descripción del servicio de vídeo — Jellyfin
+
+**Jellyfin** es un servidor de media de código abierto para distribución de vídeo
+bajo demanda (VOD). En InnovateTech aloja vídeos de formación interna y contenido
+corporativo accesibles desde cualquier navegador. Los vídeos se almacenan en
+formato **MP4 con códec H.264** y Jellyfin transcodifica automáticamente según
+las capacidades del cliente y el ancho de banda disponible.
 
 ## 2.4 Instalación y configuración del servicio de video streaming
 
