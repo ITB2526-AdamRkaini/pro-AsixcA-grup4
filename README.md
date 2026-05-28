@@ -1044,13 +1044,64 @@ A partir de este momento, cualquier intento de conexión hacia un puerto que no 
 
 ## 4.7. Implementación del Servicio de Transferencia de Ficheros (SFTP)
 
+Hemos implemetado  un canal seguro y eficiente para la transferencia física de activos digitales y documentación de gran volumen. Para cumplir con este requerimiento a nivel de infraestructura, se optó por el despliegue del protocolo SFTP (Secure File Transfer Protocol), el cual opera de forma nativa encapsulado sobre el canal cifrado del protocolo SSH (puerto físico 22).
+
 Para cubrir el requerimiento de transferencia segura de archivos, hemos configurado un servicio SFTP con aislamiento (Chroot). Este diseño garantiza que los usuarios puedan subir y descargar archivos sin que tengan privilegios para navegar por las carpetas del sistema.
-Editamos el archivo de configuración de SSH ya añadimos esta línea:
 
-![Página de AWS al crear la máquina virtual](images/image52.png)
-![Página de AWS al crear la máquina virtual](images/image6.png)
+A continuación, se documentan las fases de comandos ejecutados directamente en la terminal remota del sistema operativo
 
-Hemos usado ChrootDirectory para crear una 'cárcel' lógica. Esto permite que cualquier persona  gestione archivos en el servidor con la total seguridad de que su acceso está limitado únicamente a los directorios autorizados, protegiendo la integridad del sistema operativo central.
+Primero hacemos la creación del grupo de seguridad del sistema y añadimos los usuarios
+
+![Página de AWS al crear la máquina virtual](images/captura101.png)
+
+Creamos la cartepa reaiz para el chroot y creamos una capeta para cada usuario
+
+![Página de AWS al crear la máquina virtual](images/captura104.png)
+
+El SSH pone condiciones estrictas de seguridad para validar un entorno Chroot: la carpeta raíz debe pertenecer de forma absoluta al superusuario root y ningún otro usuario o grupo puede tener permisos de escritura sobre ella.
+
+![Página de AWS al crear la máquina virtual](images/captura103.png)
+
+Ahora asignamos la propiedad de las celdas de almacenamiento a cada usuario
+
+![Página de AWS al crear la máquina virtual](images/captura102.png)
+
+Ahora implemtamos la politica que prohíbe estrictamente que un usuario pueda visualizar, acceder o alterar los archivos privados de cualquier otro miembro del servidor
+
+![Página de AWS al crear la máquina virtual](images/captura100.png)
+
+Y una vez configurado todo esto reinicimos el servicio ssh con un "sudo systemctl restart sshd"
+
+## Verificacion:
+
+A continuación, se detallan los ensayos científicos aplicados y sus resultados:
+
+Se inició una petición de conexión mediante el protocolo seguro SFTP,  utilizando las credenciales criptográficas asignadas al usuario 'steven':
+
+    Command: sftp steven@32.196.20.4
+    Output:  Connected to 32.196.20.4.
+             sftp>
+
+El servicio OpenSSH validó correctamente los hashes de las contraseñas
+
+
+Una vez establecida la sesión , se ejecutó el comando  'pwd' para verificar la estructura visible:
+
+    sftp> pwd
+    Remote working directory: /
+
+Se ha redirigido a la raíz del sistema de archivos para este usuario. El entorno virtualizado le impide escalar hacia directorios superiores (como /etc, /var/www/innovate o los directorios nominales de los usuarios 'aleix' y 'adam'), los cuales resultan completamente inexistentes e inaccesibles desde su posición.
+
+
+Para comprobar la persistencia de datos dentro del área segura permitida, se accedió al directorio de trabajo y se forzó la subida de un activo digital:
+
+    sftp> cd files
+    sftp> put "C:\Ruta\Archivo_Prueba.txt"
+    Uploading Archivo_Prueba.txt to /files/Archivo_Prueba.txt
+    Archivo_Prueba.txt                      100%  2.4KB   2.4KB/s   00:00
+
+La raíz del Chroot permanece blindada en modo de solo lectura (propiedad de root),  mientras que el subdirectorio '/files' permite los derechos de escritura para el usuario asignado, garantizando la integridad general del sistema.
+
 
 ## 4.8. Instalación del servidor web
 
