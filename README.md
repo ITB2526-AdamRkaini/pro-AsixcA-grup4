@@ -351,7 +351,50 @@ Saldrá una pantalla roja. **Esto es correcto y esperado**, ya que configuramos 
 Iniciamos la conferencia correctamente; cualquiera puede acceder poniendo la IP en el buscador:
  
 ![Videoconferencia funcionando](images.Adam/image28.png)
- 
+
+ ## Autenticación LDAP en Jitsi Meet (SASL/Cyrus)
+
+Para que solo los usuarios registrados en nuestro directorio LDAP puedan crear conferencias en Jitsi, configuramos la autenticación mediante **SASL** y **Cyrus**.
+
+### Instalación de los paquetes necesarios
+
+Instalamos los paquetes `sasl2-bin` y `libsasl2-modules-ldap` que permiten a Cyrus conectarse con el servidor LDAP:
+
+![Instalación de sasl2-bin y libsasl2-modules-ldap](images/image5.png)
+
+### Configuración de saslauthd
+
+Editamos el archivo `/etc/saslauthd.conf` para apuntar al servidor LDAP de la empresa. Definimos la dirección del servidor, la base de búsqueda y el filtro de usuario:
+
+![Configuración de /etc/saslauthd.conf](images/image2.png)
+
+### Generación del certificado autofirmado
+
+Generamos un certificado SSL autofirmado con validez de 365 días para el dominio de la videoconferencia:
+
+![Generación del certificado SSL con openssl](images/image3.png)
+
+### Configuración de Prosody (autenticación Cyrus + invitados)
+
+Editamos el archivo `/etc/prosody/conf.avail/proyectofinal.cfg.lua` para indicarle a Jitsi que use SASL/LDAP a través de Cyrus. Configuramos el VirtualHost principal con autenticación `cyrus` y el VirtualHost de invitados con autenticación anónima:
+
+![Configuración de Prosody con Cyrus y guest](images/image4.png)
+
+```lua
+VirtualHost "videoconferencia.proyectofinal.cat"
+    authentication = "cyrus" -- Esto le dice a Jitsi que use SASL/LDAP
+    cyrus_service_name = "xmpp"
+
+VirtualHost "guest.videoconferencia.proyectofinal.cat"
+    authentication = "anonymous"
+    c2s_require_encryption = false
+```
+
+### Activación del servicio saslauthd
+
+Iniciamos el servicio y lo habilitamos para que arranque automáticamente con el sistema:
+
+![Inicio y habilitación de saslauthd](images/image6.png)
 ---
  
 ## 2.6. Server-logs-Adam
