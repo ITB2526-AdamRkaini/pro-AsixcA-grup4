@@ -1115,7 +1115,52 @@ Si le damos al botón de eliminar nos aparece este mensaje
 
 ![Página de AWS al crear la máquina virtual](images/image49.png)
 
+## 4.12. Pruebas de Ancho de Banda
 
+Se han realizado pruebas de rendimiento de red desde el servidor de base de datos (**BBDD-Server**) utilizando `speedtest-cli` y `ping`.
+
+### 4.12.1. Resultados de las pruebas
+
+**Prueba 1 — Speedtest (ancho de banda real):**
+
+| Métrica | Resultado | Clasificación |
+|---------|-----------|---------------|
+| Ping | 2,748 ms | Excelente |
+| Bajada (Download) | 3.685,83 Mbps | Excelente |
+| Subida (Upload) | 2.468,91 Mbps | Excelente |
+
+**Prueba 2 — Latencia entre servidores (ping):**
+
+| Origen | Destino | Latencia media | Pérdida paquetes | Clasificación |
+|--------|---------|----------------|------------------|---------------|
+| BBDD-Server | Servidor Logs (44.217.43.89) | 1,217 ms | 0% | Excelente |
+| BBDD-Server | Servidor Jitsi (3.208.108.133) | 1,096 ms | 0% | Excelente |
+| BBDD-Server | Servidor Web (32.196.20.4) | 0,901 ms | 0% | Excelente |
+
+### 4.12.2. Relación con los servicios multimedia
+
+| Servicio | Ancho de banda por usuario | Usuarios simultáneos posibles | Resultado |
+|----------|----------------------------|-------------------------------|-----------|
+| Streaming audio OGG 128 kbps | 0,128 Mbps | 28.789 | ✅ Aceptable |
+| Streaming vídeo 720p | 4 Mbps | 921 | ✅ Aceptable |
+| Streaming vídeo 1080p | 8 Mbps | 460 | ✅ Aceptable |
+| Videoconferencia Jitsi HD | 2,5 Mbps ↓ + 2,5 Mbps ↑ | 987 | ✅ Aceptable |
+
+### 4.12.3. Conclusión técnica
+
+La infraestructura desplegada en AWS es **completamente aceptable** para soportar todos los servicios multimedia de InnovateTech:
+
+- Latencia entre servidores inferior a 2 ms en todos los casos (umbral crítico para videoconferencia: 100 ms).
+- Ancho de banda disponible (3,6 Gbps) supera en más de 900 veces el mínimo necesario para streaming de audio.
+- Pérdida de paquetes del 0% en todas las pruebas, garantizando transmisiones estables.
+
+**Clasificación del sistema: ✅ ACEPTABLE**
+
+**Propuestas de optimización:**
+- Implementar CDN (CloudFront) para reducir latencia a usuarios geográficamente remotos.
+- Configurar QoS para priorizar tráfico de videoconferencia en hora punta.
+- Escalar a instancia t2.large si el volumen de clientes simultáneos crece significativamente.
+- Revisar la configuración de red del servidor de logs, que mostró valores inferiores en las pruebas iniciales.
 
 
 
