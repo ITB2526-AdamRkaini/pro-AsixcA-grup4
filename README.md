@@ -482,6 +482,69 @@ control_backups (id_backup PK, data_hora,
 configuracio_servidor (id_config PK, parametre, valor,
                        protocol, port, descripcio)
 ```
+# 3.7. LDAP
+
+## Creación de la estancia EC2
+![](imegensSteven/01_launch_instance_name.png)
+![](imegensSteven/02_ami_ubuntu.png)
+![](imegensSteven/03_instance_type_t2small.png)
+![](imegensSteven/04_key_pair.png)
+![](imegensSteven/05_network_settings.png)
+![](imegensSteven/06_configure_storage.png)
+Actualizamos el sistema:
+![](imegensSteven/07_apt_update.png)
+![](imegensSteven/08_apt_upgrade.png)
+Asignamos una IP elástica a la instancia:
+![](imegensSteven/09_allocate_elastic_ip.png)
+![](imegensSteven/10_elastic_ip_allocated.png)
+Asociamos la IP elástica a la instancia y configuramos las reglas de entrada:
+![](imegensSteven/11_associate_elastic_ip.png)
+![](imegensSteven/12_inbound_rules.png)
+Cambiamos el hostname de la máquina:
+![](imegensSteven/13_nano_hostname.png)
+![](imegensSteven/14_hostname_ldappro.png)
+
+## Instalación y configuración del servidor LDAP
+
+Instalamos los paquetes necesarios:
+![](imegensSteven/15_apt_install_slapd.png)
+Durante la instalación configuramos slapd. Introducimos la contraseña de administrador:
+![](imegensSteven/16_slapd_admin_password.png)
+Definimos el nombre de dominio DNS:
+![](imegensSteven/17_slapd_dns_domain.png)
+Definimos el nombre de la organización:
+![](imegensSteven/18_slapd_org_name.png)
+Volvemos a introducir la contraseña de administrador y la confirmamos:
+![](imegensSteven/19_slapd_admin_password2.png)
+![](imegensSteven/20_slapd_confirm_password.png)
+Indicamos que no se elimine la base de datos al purgar slapd:
+![](imegensSteven/21_slapd_purge_no.png)
+Movemos la base de datos antigua:
+![](imegensSteven/22_slapd_move_old_db.png)
+Reconfiguración completada correctamente:
+![](imegensSteven/23_dpkg_reconfigure_output.png)
+Comprobamos que se ha configurado correctamente:
+![](imegensSteven/24_ldapsearch_base.png)
+Creamos la carpeta donde se guardarán todos los archivos ldif:
+![](imegensSteven/25_mkdir_ldap.png)
+
+## Creación de la estructura LDAP
+
+Se harán 2 OUs, **users** y **groups**:
+![](imegensSteven/26_core_ldif.png)
+Comprobación:
+![](imegensSteven/27_ldapadd_core.png)
+
+## Creación de los usuarios
+
+Cada integrante tendrá su usuario:
+
+![](imegensSteven/28_users_ldif.png)
+![](imegensSteven/29_ldapadd_users.png)
+
+## Comprobación
+
+![](imegensSteven/30_ldapsearch_final.png)
 
 
 # FASE 4. SERVER WEB
