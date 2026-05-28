@@ -1,0 +1,629 @@
+ubuntu@servidor-logs:~$ cat despliegue_logs.yml
+---
+# ============================================================
+# PLAYBOOK DEFINITIVO - INFRAESTRUCTURA DE LOGS CENTRALIZADA
+# rsyslog + Loki + Promtail + Grafana con dashboard tiempo real
+# Grupo 4 - pro-asixc1a-g4
+# ============================================================
+- name: 🌐 DESPLIEGUE COMPLETO SERVIDOR DE LOGS - InnovateTech
+  hosts: log_server
+  become: true
+
+  vars:
+    loki_version: "3.0.0"
+    grafana_admin_password: "pirineus"
+
+  tasks:
+
+    # ==================================================================
+    # SECCIÓN 0: PURGA TOTAL, LIMPIEZA Y VERIFICACIÓN DE SEGURIDAD
+    # ==================================================================
+
+    - name: "0.1 | Detener todos los servicios activos (ignorar si no existen)"
+      ansible.builtin.service:
+        name: "{{ item }}"
+        state: stopped
+      failed_when: false
+      loop:
+        - grafana-server
+        - loki
+        - promtail
+        - rsyslog
+
+    - name: "0.2 | Purgar completamente los paquetes instalados"
+      ansible.builtin.apt:
+        name:
+          - grafana
+          - loki
+          - promtail
+          - rsyslog
+        state: absent
+        purge: true
+      ignore_errors: true
+
+    - name: "0.3 | Eliminar todos los directorios y archivos de configuración anteriores"
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/rsyslog.d/00-server_central.conf
+        - /etc/promtail
+        - /etc/grafana
+        - /etc/loki
+        - /var/lib/grafana
+        - /var/lib/loki
+        - /var/log/remote
+        - /tmp/loki.deb
+        - /tmp/promtail.deb
+        - /tmp/positions.yaml
+        - /etc/apt/sources.list.d/grafana.list
+        - /etc/apt/keyrings/grafana.gpg
+        - /tmp/grafana.key
+
+    - name: "0.4 | Hacer apt autoremove para limpiar dependencias huérfanas"
+      ansible.builtin.apt:
+        autoremove: true
+        purge: true
+
+    - name: "0.5 | COMPROBACIÓN ESTRICTA - Registrar estado de binarios"
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      loop:
+        - /usr/sbin/grafana-server
+        - /usr/bin/loki
+        - /usr/bin/promtail
+        - /usr/sbin/rsyslogd
+      register: verificacion_borrado
+
+    - name: "0.6 | COMPROBACIÓN ESTRICTA - Abortar si algún binario sigue presente"
+      ansible.builtin.fail:
+        msg: >
+          ERROR CRÍTICO: El binario '{{ item.item }}' TODAVÍA EXISTE.
+          Limpieza incompleta. Revisa manualmente y vuelve a ejecutar.
+      loop: "{{ verificacion_borrado.results }}"
+      when: item.stat.exists
+
+    - name: "0.7 | ✅ Confirmación: todos los binarios eliminados correctamente"
+      ansible.builtin.debug:
+        msg: "Sistema limpio. Iniciando instalación desde cero..."
+
+    # ==================================================================
+    # SECCIÓN 1: RSYSLOG - SERVIDOR CENTRAL DE LOGS (PUERTO 514)
+    # ==================================================================
+
+    - name: "1.1 | Actualizar caché de apt"
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: "1.2 | Instalar rsyslog limpio"
+      ansible.builtin.apt:
+        name: rsyslog
+        state: present
+
+    - name: "1.3 | Configurar rsyslog: recepción UDP+TCP en puerto 514 y plantilla de logs"
+      ansible.builtin.copy:
+        dest: /etc/rsyslog.d/00-server_central.conf
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          # =============================================
+          # SERVIDOR CENTRAL DE LOGS - InnovateTech G4
+          # Recibe logs de todos los equipos del grupo
+          # =============================================
+
+          # Módulo UDP puerto 514
+          module(load="imudp")
+          input(type="imudp" port="514")
+
+          # Módulo TCP puerto 514
+          module(load="imtcp")
+          input(type="imtcp" port="514")
+
+          # Permisos de los archivos de log creados
+          $FileOwner syslog
+          $FileGroup adm
+          $FileCreateMode 0644
+          $DirCreateMode 0755
+
+          # Plantilla: /var/log/remote/<HOSTNAME>/<PROGRAMA>.log
+          $template RemoteLogs,"/var/log/remote/%HOSTNAME%/%PROGRAMNAME%.log"
+          *.* ?RemoteLogs
+          & stop
+
+    - name: "1.4 | Crear directorio de almacenamiento de logs remotos"
+      ansible.builtin.file:
+        path: /var/log/remote
+        state: directory
+        owner: syslog
+        group: adm
+        mode: '0755'
+
+    - name: "1.5 | Arrancar y habilitar rsyslog"
+      ansible.builtin.service:
+        name: rsyslog
+        state: restarted
+        enabled: true
+
+    # ==================================================================
+    # SECCIÓN 2: GRAFANA - REPOSITORIO E INSTALACIÓN
+    # ==================================================================
+
+    - name: "2.1 | Instalar dependencias necesarias para Grafana"
+      ansible.builtin.apt:
+        name:
+          - apt-transport-https
+          - software-properties-common
+          - wget
+          - gpg
+          - curl
+          - adduser
+          - libfontconfig1
+        state: present
+
+    - name: "2.2 | Crear directorio de keyrings del sistema"
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+
+    - name: "2.3 | Descargar clave GPG oficial de Grafana Labs"
+      ansible.builtin.get_url:
+        url: https://apt.grafana.com/gpg.key
+        dest: /tmp/grafana.key
+        mode: '0644'
+
+    - name: "2.4 | Desarmar e instalar la clave GPG en formato binario"
+      ansible.builtin.shell:
+        cmd: "gpg --dearmor < /tmp/grafana.key > /etc/apt/keyrings/grafana.gpg"
+        creates: /etc/apt/keyrings/grafana.gpg
+
+    - name: "2.5 | Añadir repositorio estable oficial de Grafana"
+      ansible.builtin.apt_repository:
+        repo: "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main"
+        filename: grafana
+        state: present
+
+    - name: "2.6 | Instalar Grafana Server"
+      ansible.builtin.apt:
+        name: grafana
+        state: present
+        update_cache: true
+
+    # ==================================================================
+    # SECCIÓN 3: LOKI Y PROMTAIL v3.0.0 - DESCARGA E INSTALACIÓN
+    # ==================================================================
+
+    - name: "3.1 | Descargar paquetes .deb de Loki y Promtail v{{ loki_version }}"
+      ansible.builtin.get_url:
+        url: "{{ item.url }}"
+        dest: "/tmp/{{ item.name }}.deb"
+        mode: '0644'
+        timeout: 120
+      loop:
+        - name: loki
+          url: "https://github.com/grafana/loki/releases/download/v{{ loki_version }}/loki_{{ loki_version }}_amd64.deb"
+        - name: promtail
+          url: "https://github.com/grafana/loki/releases/download/v{{ loki_version }}/promtail_{{ loki_version }}_amd64.deb"
+
+    - name: "3.2 | Instalar Loki y Promtail desde los .deb descargados"
+      ansible.builtin.apt:
+        deb: "/tmp/{{ item }}.deb"
+        state: present
+      loop:
+        - loki
+        - promtail
+
+    # ==================================================================
+    # SECCIÓN 4: CONFIGURACIÓN DE PROMTAIL
+    # (la clave: etiqueta job=rsyslog-remote para la query de Grafana)
+    # ==================================================================
+
+    - name: "4.1 | Asegurar que existe el directorio de configuración de Promtail"
+      ansible.builtin.file:
+        path: /etc/promtail
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: "4.2 | Escribir configuración de Promtail con etiqueta job=rsyslog-remote"
+      ansible.builtin.copy:
+        dest: /etc/promtail/config.yml
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          # =============================================
+          # CONFIGURACIÓN PROMTAIL - InnovateTech G4
+          # Etiqueta job=rsyslog-remote para query Grafana:
+          # {job="rsyslog-remote"}
+          # =============================================
+          server:
+            http_listen_port: 9080
+            grpc_listen_port: 0
+
+          positions:
+            filename: /tmp/positions.yaml
+
+          clients:
+            - url: http://localhost:3100/loki/api/v1/push
+
+          scrape_configs:
+            - job_name: rsyslog-remote
+              static_configs:
+                - targets:
+                    - localhost
+                  labels:
+                    job: rsyslog-remote
+                    __path__: /var/log/remote/*/*.log
+
+    - name: "4.3 | Verificar que el archivo de servicio de Promtail apunta al config correcto"
+      ansible.builtin.lineinfile:
+        path: /etc/systemd/system/promtail.service
+        regexp: "^ExecStart="
+        line: "ExecStart=/usr/bin/promtail -config.file=/etc/promtail/config.yml"
+      notify: reload systemd
+      ignore_errors: true
+
+    # ==================================================================
+    # SECCIÓN 5: PROVISIONING AUTOMÁTICO DE GRAFANA
+    # (Datasource Loki + Dashboard con logs en tiempo real)
+    # ==================================================================
+
+    - name: "5.1 | Crear directorios de provisioning de Grafana"
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: root
+        group: grafana
+        mode: '0750'
+      loop:
+        - /etc/grafana/provisioning/datasources
+        - /etc/grafana/provisioning/dashboards
+        - /var/lib/grafana/dashboards
+
+    - name: "5.2 | Ajustar propietario de carpeta de dashboards"
+      ansible.builtin.file:
+        path: /var/lib/grafana/dashboards
+        owner: grafana
+        group: grafana
+        mode: '0755'
+
+    - name: "5.3 | Provisionar datasource Loki (se conecta automáticamente sin configuración manual)"
+      ansible.builtin.copy:
+        dest: /etc/grafana/provisioning/datasources/loki.yaml
+        owner: root
+        group: grafana
+        mode: '0640'
+        content: |
+          apiVersion: 1
+          datasources:
+            - name: Loki
+              type: loki
+              uid: loki
+              access: proxy
+              url: http://localhost:3100
+              isDefault: true
+              jsonData:
+                maxLines: 5000
+                timeout: 60
+
+    - name: "5.4 | Provisionar proveedor de dashboards (carga automática desde archivo)"
+      ansible.builtin.copy:
+        dest: /etc/grafana/provisioning/dashboards/default.yaml
+        owner: root
+        group: grafana
+        mode: '0640'
+        content: |
+          apiVersion: 1
+          providers:
+            - name: 'InnovateTech Logs'
+              orgId: 1
+              folder: 'Logs Centralizados'
+              type: file
+              disableDeletion: false
+              updateIntervalSeconds: 10
+              allowUiUpdates: true
+              options:
+                path: /var/lib/grafana/dashboards
+
+    - name: "5.5 | Provisionar dashboard completo de LOGS EN TIEMPO REAL"
+      ansible.builtin.copy:
+        dest: /var/lib/grafana/dashboards/logs_tiempo_real.json
+        owner: grafana
+        group: grafana
+        mode: '0644'
+        content: |
+          {
+            "annotations": { "list": [] },
+            "description": "Dashboard de logs centralizados en tiempo real. Query: {job=\"rsyslog-remote\"}",
+            "editable": true,
+            "fiscalYearStartMonth": 0,
+            "graphTooltip": 0,
+            "id": null,
+            "links": [],
+            "panels": [
+              {
+                "collapsed": false,
+                "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+                "id": 10,
+                "title": "📊 Resumen de Logs",
+                "type": "row"
+              },
+              {
+                "datasource": { "type": "loki", "uid": "loki" },
+                "fieldConfig": {
+                  "defaults": {},
+                  "overrides": []
+                },
+                "gridPos": { "h": 4, "w": 8, "x": 0, "y": 1 },
+                "id": 2,
+                "options": {
+                  "colorMode": "background",
+                  "graphMode": "area",
+                  "justifyMode": "center",
+                  "orientation": "auto",
+                  "reduceOptions": {
+                    "calcs": ["count"],
+                    "fields": "",
+                    "values": false
+                  },
+                  "text": {},
+                  "textMode": "auto"
+                },
+                "targets": [
+                  {
+                    "datasource": { "type": "loki", "uid": "loki" },
+                    "expr": "count_over_time({job=\"rsyslog-remote\"}[5m])",
+                    "legendFormat": "Logs últimos 5 min",
+                    "queryType": "instant",
+                    "refId": "A"
+                  }
+                ],
+                "title": "📈 Logs en los últimos 5 min",
+                "type": "stat"
+              },
+              {
+                "datasource": { "type": "loki", "uid": "loki" },
+                "fieldConfig": {
+                  "defaults": {},
+                  "overrides": []
+                },
+                "gridPos": { "h": 4, "w": 8, "x": 8, "y": 1 },
+                "id": 3,
+                "options": {
+                  "colorMode": "background",
+                  "graphMode": "area",
+                  "justifyMode": "center",
+                  "orientation": "auto",
+                  "reduceOptions": {
+                    "calcs": ["count"],
+                    "fields": "",
+                    "values": false
+                  },
+                  "text": {},
+                  "textMode": "auto"
+                },
+                "targets": [
+                  {
+                    "datasource": { "type": "loki", "uid": "loki" },
+                    "expr": "count_over_time({job=\"rsyslog-remote\"}[1h])",
+                    "legendFormat": "Logs última hora",
+                    "queryType": "instant",
+                    "refId": "A"
+                  }
+                ],
+                "title": "📋 Logs en la última hora",
+                "type": "stat"
+              },
+              {
+                "datasource": { "type": "loki", "uid": "loki" },
+                "fieldConfig": {
+                  "defaults": {},
+                  "overrides": []
+                },
+                "gridPos": { "h": 4, "w": 8, "x": 16, "y": 1 },
+                "id": 4,
+                "options": {
+                  "colorMode": "background",
+                  "graphMode": "area",
+                  "justifyMode": "center",
+                  "orientation": "auto",
+                  "reduceOptions": {
+                    "calcs": ["count"],
+                    "fields": "",
+                    "values": false
+                  },
+                  "text": {},
+                  "textMode": "auto"
+                },
+                "targets": [
+                  {
+                    "datasource": { "type": "loki", "uid": "loki" },
+                    "expr": "count_over_time({job=\"rsyslog-remote\", level=~\"error|err|crit|alert|emerg\"}[1h])",
+                    "legendFormat": "Errores",
+                    "queryType": "instant",
+                    "refId": "A"
+                  }
+                ],
+                "title": "🚨 Errores en la última hora",
+                "type": "stat"
+              },
+              {
+                "collapsed": false,
+                "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+                "id": 11,
+                "title": "📡 Logs en Tiempo Real",
+                "type": "row"
+              },
+              {
+                "datasource": { "type": "loki", "uid": "loki" },
+                "gridPos": { "h": 22, "w": 24, "x": 0, "y": 6 },
+                "id": 1,
+                "options": {
+                  "dedupStrategy": "none",
+                  "enableLogDetails": true,
+                  "prettifyLogMessage": false,
+                  "showCommonLabels": false,
+                  "showLabels": true,
+                  "showTime": true,
+                  "sortOrder": "Descending",
+                  "wrapLogMessage": true
+                },
+                "targets": [
+                  {
+                    "datasource": { "type": "loki", "uid": "loki" },
+                    "expr": "{job=\"rsyslog-remote\"}",
+                    "legendFormat": "",
+                    "queryType": "range",
+                    "refId": "A"
+                  }
+                ],
+                "title": "📡 Todos los Logs en Tiempo Real — {job=\"rsyslog-remote\"}",
+                "type": "logs"
+              }
+            ],
+            "refresh": "5s",
+            "schemaVersion": 38,
+            "tags": ["logs", "rsyslog", "tiempo-real", "innovatetech"],
+            "templating": { "list": [] },
+            "time": { "from": "now-1h", "to": "now" },
+            "timepicker": {
+              "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "10m", "30m"]
+            },
+            "timezone": "browser",
+            "title": "🖥️ Logs Centralizados - Tiempo Real",
+            "uid": "logs-tiempo-real-g4",
+            "version": 1
+          }
+
+    - name: "5.6 | Configurar contraseña de admin de Grafana"
+      ansible.builtin.lineinfile:
+        path: /etc/grafana/grafana.ini
+        regexp: '^;?admin_password\s*='
+        line: "admin_password = {{ grafana_admin_password }}"
+        insertafter: '^\[security\]'
+      notify: restart grafana
+
+    # ==================================================================
+    # SECCIÓN 6: PERMISOS DE SEGURIDAD
+    # ==================================================================
+
+    - name: "6.1 | Añadir usuario 'promtail' al grupo 'adm' para leer /var/log"
+      ansible.builtin.user:
+        name: promtail
+        groups: adm
+        append: true
+
+    - name: "6.2 | Aplicar permisos recursivos en directorio de logs remotos"
+      ansible.builtin.file:
+        path: /var/log/remote
+        state: directory
+        recurse: true
+        owner: syslog
+        group: adm
+        mode: '0755'
+
+    # ==================================================================
+    # SECCIÓN 7: RECARGA DE SYSTEMD Y ARRANQUE DE SERVICIOS
+    # ==================================================================
+
+    - name: "7.1 | Recargar systemd para aplicar cambios en los unit files"
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: "7.2 | Arrancar y habilitar todos los servicios en cascada"
+      ansible.builtin.service:
+        name: "{{ item }}"
+        state: restarted
+        enabled: true
+      loop:
+        - rsyslog
+        - loki
+        - promtail
+        - grafana-server
+
+    # ==================================================================
+    # SECCIÓN 8: VERIFICACIÓN FINAL
+    # ==================================================================
+
+    - name: "8.1 | Esperar a que Grafana esté disponible en puerto 3000 (máx 90s)"
+      ansible.builtin.wait_for:
+        port: 3000
+        host: localhost
+        delay: 8
+        timeout: 90
+        msg: "Grafana no ha levantado en tiempo esperado"
+
+    - name: "8.2 | Esperar a que Loki esté disponible en puerto 3100 (máx 60s)"
+      ansible.builtin.wait_for:
+        port: 3100
+        host: localhost
+        delay: 5
+        timeout: 60
+        msg: "Loki no ha levantado en tiempo esperado"
+
+    - name: "8.3 | Esperar a que Promtail esté disponible en puerto 9080 (máx 60s)"
+      ansible.builtin.wait_for:
+        port: 9080
+        host: localhost
+        delay: 5
+        timeout: 60
+        msg: "Promtail no ha levantado en tiempo esperado"
+
+    - name: "8.4 | Verificar que rsyslog escucha en puerto 514"
+      ansible.builtin.wait_for:
+        port: 514
+        host: 0.0.0.0
+        delay: 2
+        timeout: 30
+        msg: "rsyslog no escucha en puerto 514"
+
+    - name: "8.5 | Comprobar estado final de todos los servicios"
+      ansible.builtin.service_facts:
+
+    - name: "8.6 | Mostrar estado de cada servicio"
+      ansible.builtin.debug:
+        msg: "{{ item }}: {{ ansible_facts.services[item + '.service'].state | default('NO ENCONTRADO') }}"
+      loop:
+        - rsyslog
+        - loki
+        - promtail
+        - grafana-server
+
+    - name: "8.7 | ✅ RESUMEN FINAL DE INSTALACIÓN"
+      ansible.builtin.debug:
+        msg:
+          - "========================================================"
+          - " ✅  INSTALACIÓN COMPLETADA CON ÉXITO - InnovateTech G4"
+          - "========================================================"
+          - ""
+          - " 📊 GRAFANA:   http://{{ ansible_host }}:3000"
+          - "     Usuario:  admin"
+          - "     Password: {{ grafana_admin_password }}"
+          - ""
+          - " 📡 LOKI:      http://{{ ansible_host }}:3100"
+          - " 🔍 PROMTAIL:  http://{{ ansible_host }}:9080"
+          - " 📋 LOGS:      /var/log/remote/<HOSTNAME>/<PROGRAMA>.log"
+          - ""
+          - " 🔎 QUERY PARA VER LOGS EN TIEMPO REAL EN GRAFANA:"
+          - "    {job=\"rsyslog-remote\"}"
+          - ""
+          - " ⚡ El dashboard se actualiza automáticamente cada 5s"
+          - " 🖥️  Dashboard: 'Logs Centralizados - Tiempo Real'"
+          - "========================================================"
+
+  # ==================================================================
+  # HANDLERS
+  # ==================================================================
+  handlers:
+    - name: reload systemd
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: restart grafana
+      ansible.builtin.service:
+        name: grafana-server
+        state: restarted
