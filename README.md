@@ -1078,27 +1078,23 @@ A continuación, se detallan los ensayos científicos aplicados y sus resultados
 
 Se inició una petición de conexión mediante el protocolo seguro SFTP,  utilizando las credenciales criptográficas asignadas al usuario 'steven':
 
-    Command: sftp steven@32.196.20.4
-    Output:  Connected to 32.196.20.4.
-             sftp>
+![Página de AWS al crear la máquina virtual](images/captura105.png)
 
 El servicio OpenSSH validó correctamente los hashes de las contraseñas
 
 
 Una vez establecida la sesión , se ejecutó el comando  'pwd' para verificar la estructura visible:
 
-    sftp> pwd
-    Remote working directory: /
+![Página de AWS al crear la máquina virtual](images/captura106.png)
 
 Se ha redirigido a la raíz del sistema de archivos para este usuario. El entorno virtualizado le impide escalar hacia directorios superiores (como /etc, /var/www/innovate o los directorios nominales de los usuarios 'aleix' y 'adam'), los cuales resultan completamente inexistentes e inaccesibles desde su posición.
 
 
 Para comprobar la persistencia de datos dentro del área segura permitida, se accedió al directorio de trabajo y se forzó la subida de un activo digital:
 
-    sftp> cd files
-    sftp> put "C:\Ruta\Archivo_Prueba.txt"
-    Uploading Archivo_Prueba.txt to /files/Archivo_Prueba.txt
-    Archivo_Prueba.txt                      100%  2.4KB   2.4KB/s   00:00
+![Página de AWS al crear la máquina virtual](images/captura108.png)
+
+![Página de AWS al crear la máquina virtual](images/captura107.png)
 
 La raíz del Chroot permanece blindada en modo de solo lectura (propiedad de root),  mientras que el subdirectorio '/files' permite los derechos de escritura para el usuario asignado, garantizando la integridad general del sistema.
 
