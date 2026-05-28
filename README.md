@@ -1162,7 +1162,17 @@ La infraestructura desplegada en AWS es **completamente aceptable** para soporta
 - Escalar a instancia t2.large si el volumen de clientes simultáneos crece significativamente.
 - Revisar la configuración de red del servidor de logs, que mostró valores inferiores en las pruebas iniciales.
 
+## FASE 5. COMPROBACIONES DE FUNCIONAMIENTO
 
+Todos los servicios desplegados han sido verificados y están operativos:
+
+- ✅ Icecast2 (audio streaming) — activo en puerto 8000
+- ✅ Jellyfin (vídeo streaming) — activo en puerto 8096
+- ✅ Jitsi Meet (videoconferencia) — activo y accesible vía web
+- ✅ Servidor LDAP (slapd) — usuarios verificados con ldapsearch
+- ✅ Logs centralizados (rsyslog + Grafana/Loki) — logs en tiempo real verificados
+- ✅ MariaDB — triggers, roles y backup automático verificados
+- ✅ Servidor Web Nginx + SFTP — operativo con autenticación LDAP
 
 
 
