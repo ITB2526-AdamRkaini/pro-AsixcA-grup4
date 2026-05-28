@@ -5,11 +5,12 @@
 **Curso:** 25/26 · Instituto Tecnológico de Barcelona
 
 ## Índice
-- [Fase 1 — Arquitectura CPD](./fase1-cpd.md)
-- [Fase 2 — Servicios de Audio y Vídeo](./fase2-audio-video.md)
-- [Fase 3 — Base de Datos](./fase3-bbdd.md)
-- [Fase 4 — Servidor Web](./fase4-servidor-web.md)
-- [Fase 5 — Comprobación funcionamiento](./fase5-comprobaciones.md)
+
+- [Fase 1 — Arquitectura CPD](#fase-1-arquitectura-del-espacio-físico-diseño-estructural-y-seguridad)
+- [Fase 2 — Servicios de Audio y Vídeo](#fase-2-implantación-de-los-servicios-de-audio-vídeo-y-videoconferencia)
+- [Fase 3 — Base de Datos](#fase-3-creación-de-la-base-de-datos)
+- [Fase 4 — Servidor Web](#fase-4-server-web)
+- [Fase 5 — Comprobación funcionamiento](#fase-5-comprobaciones-de-funcionamiento)
 
 # FASE 1: ARQUITECTURA DEL ESPACIO FÍSICO, DISEÑO ESTRUCTURAL Y SEGURIDAD
 
