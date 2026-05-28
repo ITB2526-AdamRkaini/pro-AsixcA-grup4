@@ -628,6 +628,50 @@ Añadimos la regla UFW que permite el puerto 3306 únicamente desde el servidor 
 
 [![UFW status verbose — puerto 3306 restringido](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-026.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-026.png)
 
+### ANSIBLE
+
+Se han desplegado completamente con Ansible dos máquinas:
+
+- **BBDD-Server** → `ansible/playbook-bbdd.yml`
+- **Servidor de Logs** → `ansible/playbook-logs.yml`
+
+Cada playbook cubre el despliegue completo desde cero: instalación de paquetes,
+configuración del servicio, creación de usuarios, permisos, firewall (UFW)
+y verificación final del estado.
+
+#### Playbook BBDD — `ansible/playbook-bbdd.yml`
+
+Automatiza el despliegue completo del servidor MariaDB:
+- Instalación de MariaDB + python3-pymysql + UFW
+- Configuración personalizada (`bind-address`, `event_scheduler ON`, charset utf8mb4)
+- Securización (elimina usuarios anónimos, BD test, establece contraseña root)
+- Creación de la base de datos `innovatetech_db` con las 11 tablas completas
+- Creación de los 4 roles (`admin`, `vendes`, `administracio`, `treballador`) con permisos diferenciados
+- Creación del usuario `adminitb` en MariaDB y en el sistema con acceso SSH por clave pública
+- Directorio de backups `/var/backups/innovatetech`
+- Reglas UFW: solo puerto 22 y 3306 desde la VPC
+
+#### Playbook Logs — `ansible/playbook-logs.yml`
+
+Automatiza el despliegue completo del servidor de logs centralizado:
+- Purga total previa para garantizar instalación limpia
+- Instalación y configuración de **rsyslog** (recepción UDP+TCP puerto 514)
+- Instalación de **Grafana** desde repositorio oficial con clave GPG
+- Instalación de **Loki v3.0.0** y **Promtail v3.0.0**
+- Provisioning automático del datasource Loki en Grafana
+- Provisioning automático del dashboard "Logs Centralizados - Tiempo Real"
+- Verificación final de todos los servicios con `wait_for`
+
+#### Ejecución
+
+```bash
+# Playbook BBDD
+ansible-playbook -i hosts.ini ansible/playbook-bbdd.yml --private-key bbddpro.pem
+
+# Playbook Logs
+ansible-playbook -i hosts.ini ansible/playbook-logs.yml --private-key logspro.pem
+```
+
 ## 3.5. Diagrama E/R
 
 [![Diagrama E/R innovatetech_db](https://github.com/ITB2526-AdamRkaini/pro-AsixcA-grup4/raw/main/images/fase3-029.png)](/ITB2526-AdamRkaini/pro-AsixcA-grup4/blob/main/images/fase3-029.png)
